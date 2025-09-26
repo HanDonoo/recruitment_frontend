@@ -1,5 +1,6 @@
 "use client"
 
+import { useEffect, useState } from "react"
 import { Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer } from "recharts"
 
 interface RadarChartProps {
@@ -14,44 +15,119 @@ interface RadarChartProps {
 }
 
 export function AssessmentRadarChart({ data, className }: RadarChartProps) {
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
   const chartData = [
     {
-      subject: "Skills Match",
-      score: data.skills_match,
+      subject: "Skills",
+      A: data.skills_match,
       fullMark: 100,
     },
     {
       subject: "Experience",
-      score: data.experience_depth,
+      A: data.experience_depth,
       fullMark: 100,
     },
     {
       subject: "Education",
-      score: data.education_match,
+      A: data.education_match,
       fullMark: 100,
     },
     {
       subject: "Potential",
-      score: data.potential_fit,
+      A: data.potential_fit,
       fullMark: 100,
     },
     {
       subject: "Overall",
-      score: data.overall,
+      A: data.overall,
       fullMark: 100,
     },
   ]
 
+  if (!mounted) {
+    return (
+        <div className={`flex items-center justify-center h-80 ${className}`}>
+          <div className="text-gray-500">Loading chart...</div>
+        </div>
+    )
+  }
+
   return (
-    <div className={className}>
-      <ResponsiveContainer width="100%" height="100%">
-        <RadarChart cx="50%" cy="50%" outerRadius="80%" data={chartData}>
-          <PolarGrid />
-          <PolarAngleAxis dataKey="subject" className="text-xs" />
-          <PolarRadiusAxis angle={90} domain={[0, 100]} className="text-xs" tickCount={6} />
-          <Radar name="Score" dataKey="score" stroke="#dc2626" fill="#dc2626" fillOpacity={0.1} strokeWidth={2} />
-        </RadarChart>
-      </ResponsiveContainer>
-    </div>
+      <div className={`w-full h-full ${className}`} style={{ minHeight: '300px' }}>
+        <ResponsiveContainer width="100%" height="100%">
+          <RadarChart
+              data={chartData}
+              margin={{ top: 20, right: 30, bottom: 20, left: 30 }}
+          >
+            <PolarGrid />
+            <PolarAngleAxis dataKey="subject" />
+            <PolarRadiusAxis domain={[0, 100]} />
+            <Radar
+                dataKey="A"
+                stroke="#dc2626"
+                fill="#dc2626"
+                fillOpacity={0.3}
+                strokeWidth={2}
+            />
+          </RadarChart>
+        </ResponsiveContainer>
+      </div>
+  )
+}
+
+
+export function StableRadarChart({ data, className }: RadarChartProps) {
+  const [isReady, setIsReady] = useState(false)
+
+  useEffect(() => {
+    setIsReady(true)
+  }, [])
+
+  const radarData = [
+    { metric: "Skills", value: data.skills_match, max: 100 },
+    { metric: "Experience", value: data.experience_depth, max: 100 },
+    { metric: "Education", value: data.education_match, max: 100 },
+    { metric: "Potential", value: data.potential_fit, max: 100 },
+    { metric: "Overall", value: data.overall, max: 100 },
+  ]
+
+  if (!isReady) {
+    return <div className="h-80 bg-gray-100 animate-pulse rounded-lg" />
+  }
+
+  return (
+      <div className={className} style={{ width: '100%', height: '300px' }}>
+        <ResponsiveContainer width="100%" height="100%">
+          <RadarChart data={radarData} cx="50%" cy="50%" outerRadius="60%">
+            <PolarGrid gridType="polygon" />
+            <PolarAngleAxis
+                dataKey="metric"
+                className="text-xs fill-gray-600"
+                tick={{ fontSize: 12 }}
+            />
+            <PolarRadiusAxis
+                angle={90}
+                domain={[0, 100]}
+                className="text-xs"
+                tick={false}
+                axisLine={false}
+            />
+            <Radar
+                name="Assessment"
+                dataKey="value"
+                stroke="#dc2626"
+                fill="#dc2626"
+                fillOpacity={0.25}
+                strokeWidth={2}
+                dot={{ fill: "#dc2626", strokeWidth: 2, r: 4 }}
+            />
+          </RadarChart>
+        </ResponsiveContainer>
+      </div>
   )
 }

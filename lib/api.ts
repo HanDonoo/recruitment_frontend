@@ -285,10 +285,9 @@ export const api = {
     assessResume: async (jobId: number, resumeFile: File): Promise<ApiResponse<AssessmentResult>> => {
       try {
         const formData = new FormData()
-        formData.append("resume", resumeFile)
-        formData.append("jobId", jobId.toString())
+        formData.append("file", resumeFile)  // 这里 key 改为 "file" 跟后端参数名对应
 
-        const response = await fetch(`${API_BASE_URL}/assessment/evaluate`, {
+        const response = await fetch(`${API_BASE_URL}/jobs/${jobId}/assess`, {  // URL 里加 jobId
           method: "POST",
           body: formData,
         })

@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { ArrowLeft, MapPin, Users, Building, Calendar } from "lucide-react"
 import { AssessmentModal } from "@/components/assessment-modal"
-import { api, Job } from "@/lib/api" // 假设你的api.ts放在lib目录下
+import { api, Job } from "@/lib/api"
 
 export default function JobDetailPage() {
   const params = useParams()
@@ -35,7 +35,6 @@ export default function JobDetailPage() {
 
     fetchJob()
 
-    // 检查本地有没有该职位的评估结果
     const savedAssessment = localStorage.getItem(`assessment_${jobId}`)
     setHasAssessment(!!savedAssessment)
   }, [jobId])
@@ -78,7 +77,7 @@ export default function JobDetailPage() {
                 <Link href="/student">
                   <Button variant="ghost" size="sm" className="text-gray-600 hover:text-gray-900">
                     <ArrowLeft className="w-4 h-4 mr-2" />
-                    Back to Jobs
+                    Back
                   </Button>
                 </Link>
                 <div className="w-8 h-8 bg-red-600 rounded-full flex items-center justify-center">
