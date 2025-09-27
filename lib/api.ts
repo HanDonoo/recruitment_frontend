@@ -83,7 +83,7 @@ interface ApplicationCreate {
   job_id: number
 }
 
-interface ApplicationOut {
+export interface ApplicationOut {
   id: number
   applicant_id: number
   job_id: number
@@ -130,6 +130,33 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"
 export const api = {
   // Job endpoints
   jobs: {
+    getByIds: async (jobIds: number[]): Promise<ApiResponse<Job[]>> => {
+      try {
+        const jobIdsString = jobIds.join(",")
+
+        const url = `${API_BASE_URL}/jobs/list_by_job_ids?job_ids=${jobIdsString}`
+
+        const response = await fetch(url)
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`)
+        }
+
+        // 后端返回的数据转换
+        const backendJobs: BackendJob[] = await response.json()
+        const frontendJobs = backendJobs.map(transformBackendJobToFrontend)
+
+        return {
+          success: true,
+          data: frontendJobs
+        }
+      } catch (error) {
+        return {
+          success: false,
+          error: error instanceof Error ? error.message : 'Unknown error'
+        }
+      }
+    },
     getAll: async (params?: {
       q?: string
       role?: string
@@ -477,7 +504,6 @@ export const api = {
 
         if (!response.ok) {
           if (response.status === 404) {
-            // 没有申请记录，返回空数组
             return { success: true, data: [] }
           }
           const errorText = await response.text()
