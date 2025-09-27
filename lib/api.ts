@@ -90,6 +90,35 @@ export interface ApplicationOut {
   updated_at: string
 }
 
+export interface Interview {
+  id: number
+  application_id: number
+  job_id: number
+  applicant_id: number
+  company_id: number
+  interviewer_id?: number | null
+  scheduled_time: string
+  duration_minutes?: number | null
+  type: string
+  location_url?: string | null
+  status: 'Pending' | 'Confirmed' | 'Cancelled' | 'Completed'
+  notes?: string | null
+  created_at: string
+}
+
+export interface InterviewCreate {
+  application_id: number
+  job_id: number
+  applicant_id: number
+  company_id: number
+  interviewer_id?: number | null
+  scheduled_time: string
+  duration_minutes?: number | null
+  type: string
+  location_url?: string | null
+  status?: 'Pending' | 'Confirmed' | 'Cancelled' | 'Completed'
+  notes?: string | null
+}
 
 // 数据转换工具函数
 const transformBackendJobToFrontend = (backendJob: BackendJob): Job => {
@@ -642,4 +671,96 @@ export const api = {
       }
     },
   },
+
+  interviews: {
+    create: async (interview: InterviewCreate): Promise<ApiResponse<Interview>> => {
+      try {
+        const response = await fetch(`${API_BASE_URL}/interviews`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(interview),
+        })
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`)
+        }
+
+        const data: Interview = await response.json()
+        return {
+          success: true,
+          data,
+        }
+      } catch (error) {
+        return {
+          success: false,
+          error: error instanceof Error ? error.message : 'Unknown error',
+        }
+      }
+    },
+
+    list: async (params?: {
+      applicant_id?: number
+      job_id?: number
+      company_id?: number
+      limit?: number
+      offset?: number
+    }): Promise<ApiResponse<Interview[]>> => {
+      try {
+        const query = new URLSearchParams()
+        if (params?.applicant_id) query.append('applicant_id', params.applicant_id.toString())
+        if (params?.job_id) query.append('job_id', params.job_id.toString())
+        if (params?.company_id) query.append('company_id', params.company_id.toString())
+        if (params?.limit) query.append('limit', params.limit.toString())
+        if (params?.offset) query.append('offset', params.offset.toString())
+
+        const response = await fetch(`${API_BASE_URL}/interviews?${query.toString()}`)
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`)
+        }
+
+        const data: Interview[] = await response.json()
+        return {
+          success: true,
+          data,
+        }
+      } catch (error) {
+        return {
+          success: false,
+          error: error instanceof Error ? error.message : 'Unknown error',
+        }
+      }
+    },
+
+    updateStatus: async (
+        interviewId: number,
+        newStatus: 'Pending' | 'Confirmed' | 'Cancelled' | 'Completed'
+    ): Promise<ApiResponse<Interview>> => {
+      try {
+        const response = await fetch(
+            `${API_BASE_URL}/interviews/${interviewId}/status?new_status=${newStatus}`,
+            {
+              method: 'PATCH',
+            }
+        )
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`)
+        }
+
+        const data: Interview = await response.json()
+        return {
+          success: true,
+          data,
+        }
+      } catch (error) {
+        return {
+          success: false,
+          error: error instanceof Error ? error.message : 'Unknown error',
+        }
+      }
+    },
+  }
 }

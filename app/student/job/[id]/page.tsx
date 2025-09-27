@@ -84,7 +84,6 @@ export default function JobDetailPage() {
     setShowAssessment(false)
   }
 
-  // --- 加载状态 ---
   if (loading) {
     return (
         <div className="min-h-screen bg-gray-50">
@@ -101,7 +100,6 @@ export default function JobDetailPage() {
     )
   }
 
-  // --- 错误状态 ---
   if (error || !job) {
     return (
         <div className="min-h-screen bg-gray-50">

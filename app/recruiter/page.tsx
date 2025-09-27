@@ -15,7 +15,8 @@ interface CandidateWithApplication extends Candidate {
   status?: string;
   appliedAt?: string;
   score?: number;
-  jobId?: number
+  jobId?: number;
+  applicationId?: number
 }
 
 export default function RecruiterPage() {
@@ -113,7 +114,8 @@ export default function RecruiterPage() {
           status: application?.status || 'pending',
           appliedAt: application?.created_at,
           score: scoreValue,
-          jobId: application?.job_id
+          jobId: application?.job_id,
+          applicationId: application?.applicant_id
         }
       })
 

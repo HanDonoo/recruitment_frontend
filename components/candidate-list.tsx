@@ -13,6 +13,8 @@ import { Star, User, GraduationCap, Briefcase, MessageSquare, Video, Eye, Clock 
 import { useRouter } from 'next/navigation';
 import { useIsMobile } from "@/hooks/use-mobile";
 
+import { api, InterviewCreate } from "@/lib/api";
+
 interface Candidate {
   id: number
   name: string
@@ -23,7 +25,8 @@ interface Candidate {
   score?: number
   status: "pending" | "reviewed" | "interviewed"
   appliedAt: string
-  jobId?: number // 确保这里有 jobId
+  jobId?: number
+  applicationId?: number
 }
 
 interface CandidateListProps {
@@ -41,6 +44,9 @@ export function CandidateList({ candidates }: CandidateListProps) {
   const [message, setMessage] = useState("")
   const [interviewDate, setInterviewDate] = useState("")
   const [interviewTime, setInterviewTime] = useState("")
+
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -92,11 +98,49 @@ export function CandidateList({ candidates }: CandidateListProps) {
     setMessageDialogOpen(false)
   }
 
-  const submitInterview = () => {
-    console.log("Scheduling interview with", selectedCandidate?.name, "on", interviewDate, "at", interviewTime)
-    setInterviewDate("")
-    setInterviewTime("")
-    setInterviewDialogOpen(false)
+  const submitInterview = async () => {
+    if (!selectedCandidate || !selectedCandidate.jobId || !selectedCandidate.applicationId) {
+      alert("Error: Missing candidate, job ID, or application ID. Cannot schedule interview.")
+      return
+    }
+
+    const companyId = 1;
+    const interviewerId = 5;
+
+    const scheduledTime = `${interviewDate}T${interviewTime}:00Z`;
+
+    const interviewPayload: InterviewCreate = {
+      application_id: selectedCandidate.applicationId,
+      job_id: selectedCandidate.jobId,
+      applicant_id: selectedCandidate.id,
+      company_id: companyId,
+      interviewer_id: interviewerId,
+      scheduled_time: scheduledTime,
+      duration_minutes: 30,
+      type: 'Video Call',
+      status: 'Pending',
+      location_url: null,
+      notes: null
+    };
+
+    setIsSubmitting(true);
+    try {
+      const result = await api.interviews.create(interviewPayload);
+
+      if (result.success) {
+        alert(`Interview successfully scheduled with ${selectedCandidate.name}!`);
+      } else {
+        alert(`Failed to schedule interview: ${result.error}`);
+      }
+    } catch (error) {
+      alert("An unexpected error occurred while scheduling the interview.");
+      console.error("Interview submission error:", error);
+    } finally {
+      setIsSubmitting(false);
+      setInterviewDate("");
+      setInterviewTime("");
+      setInterviewDialogOpen(false);
+    }
   }
 
   if (!candidates || candidates.length === 0) {
@@ -111,11 +155,9 @@ export function CandidateList({ candidates }: CandidateListProps) {
     )
   }
 
-  // Helper function to build the assessment URL
   const buildAssessmentUrl = (candidateId: number, jobId?: number) => {
     let url = `/recruiter/candidate/${candidateId}/assessment`;
     if (jobId !== undefined && jobId !== null) {
-      // Appending jobId as a query parameter
       url += `?jobId=${jobId}`;
     }
     return url;
@@ -208,7 +250,6 @@ export function CandidateList({ candidates }: CandidateListProps) {
                     <Button
                         size="sm"
                         className={`bg-red-600 hover:bg-red-700 text-white ${isMobile ? 'w-full' : 'w-auto'}`}
-                        // 修正点: 使用 buildAssessmentUrl 确保传递 jobId
                         onClick={() => router.push(buildAssessmentUrl(candidate.id, candidate.jobId))}
                     >
                       <Eye className="w-4 h-4 mr-2" />
@@ -317,15 +358,15 @@ export function CandidateList({ candidates }: CandidateListProps) {
                 />
               </div>
               <div className="flex justify-end space-x-3">
-                <Button variant="outline" onClick={() => setInterviewDialogOpen(false)}>
+                <Button variant="outline" onClick={() => setInterviewDialogOpen(false)} disabled={isSubmitting}>
                   Cancel
                 </Button>
                 <Button
                     onClick={submitInterview}
                     className="bg-red-600 hover:bg-red-700 text-white"
-                    disabled={!interviewDate || !interviewTime}
+                    disabled={!interviewDate || !interviewTime || isSubmitting}
                 >
-                  Schedule Interview
+                  {isSubmitting ? 'Scheduling...' : 'Schedule Interview'}
                 </Button>
               </div>
             </div>
@@ -400,7 +441,6 @@ export function CandidateList({ candidates }: CandidateListProps) {
                     </Button>
                     <Button
                         className="bg-red-600 hover:bg-red-700 text-white"
-                        // 修正点: 确保 Dialog 中的 View Full Assessment 也使用 jobId (如果它不是从 /candidate/[id] 路由获取 jobId 的话)
                         onClick={() => router.push(buildAssessmentUrl(selectedCandidate.id, selectedCandidate.jobId))}
                     >
                       View Full Assessment
