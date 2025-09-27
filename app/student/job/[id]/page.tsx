@@ -33,14 +33,29 @@ export default function JobDetailPage() {
       setLoading(false)
     }
 
-    fetchJob()
+    async function fetchAssessmentStatus() {
+      try {
+        const applicantId = 1 // TODO: 从登录用户状态获取实际用户ID
+        const checkResult = await api.assessment.checkAssessment(applicantId, jobId)
+        if (checkResult.success && checkResult.data) {
+          setHasAssessment(checkResult.data.hasAssessment)
+        } else {
+          setHasAssessment(false)
+          console.error("Failed to fetch assessment status:", checkResult.error)
+        }
+      } catch (e) {
+        setHasAssessment(false)
+        console.error("Error fetching assessment status:", e)
+      }
+    }
 
-    const savedAssessment = localStorage.getItem(`assessment_${jobId}`)
-    setHasAssessment(!!savedAssessment)
+    fetchJob()
+    fetchAssessmentStatus()
   }, [jobId])
 
   const handleAssessmentComplete = (assessmentResult: any) => {
-    localStorage.setItem(`assessment_${jobId}`, JSON.stringify(assessmentResult))
+    // 不再存localStorage了，后端同步评估结果
+    // 如果你想本地缓存，可以根据实际需要添加
     setHasAssessment(true)
     setShowAssessment(false)
   }
@@ -109,7 +124,6 @@ export default function JobDetailPage() {
                       </div>
                       <div className="flex items-center space-x-1">
                         <Calendar className="w-4 h-4" />
-                        {/* 这里你可以改用实际数据，如果后端有传postedDate或者duration可以展示 */}
                         <span>{job.experience}</span>
                       </div>
                     </div>

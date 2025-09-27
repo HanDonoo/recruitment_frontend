@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react"
 import Link from "next/link"
+import { api } from "@/lib/api"
 import { useParams } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -14,29 +15,24 @@ export default function AssessmentResultPage() {
   const jobId = Number.parseInt(params.id as string)
   const [assessment, setAssessment] = useState<any>(null)
   const [jobTitle, setJobTitle] = useState("")
-  const [isLoading, setIsLoading] = useState(true) // 新增加载状态
+  const [isLoading, setIsLoading] = useState(true)
+  const applicantId = 1
 
   useEffect(() => {
-    // 模拟异步加载过程
-    const loadAssessment = async () => {
+    const fetchAssessment = async () => {
       setIsLoading(true)
+      const result = await api.assessment.getLatestAssessment(applicantId, jobId)
 
-      // 给一个短暂的延迟来模拟真实的加载过程
-      await new Promise(resolve => setTimeout(resolve, 100))
-
-      // Load assessment result from localStorage
-      const savedAssessment = localStorage.getItem(`assessment_${jobId}`)
-      if (savedAssessment) {
-        const assessmentData = JSON.parse(savedAssessment)
-        setAssessment(assessmentData)
-        setJobTitle(assessmentData.jobTitle || "Job Position")
+      if (result.success && result.data) {
+        setAssessment(result.data)
+      } else {
+        setAssessment(null)
       }
-
       setIsLoading(false)
     }
 
-    loadAssessment()
-  }, [jobId])
+    fetchAssessment()
+  }, [applicantId, jobId])
 
   // 加载状态 - 骨架屏
   if (isLoading) {

@@ -6,7 +6,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
-import { Search, Star, Clock, Users, ArrowLeft, AlertCircle } from "lucide-react"
+import { Search, Star, Clock, Users, ArrowLeft, AlertCircle, FileText } from "lucide-react"
 import { JobCard } from "@/components/job-card"
 import { AssessmentModal } from "@/components/assessment-modal"
 import { api } from "@/lib/api"
@@ -165,9 +165,20 @@ export default function StudentPage() {
                 <div className="w-8 h-8 bg-red-600 rounded-full flex items-center justify-center">
                   <span className="text-white font-bold text-xs">SoT</span>
                 </div>
-                <h1 className="text-xl font-bold text-gray-900">Summer of Tech</h1>
               </div>
-              <Badge className="bg-red-600 text-white hover:bg-red-700">Student Portal</Badge>
+              <div className="flex items-center space-x-3">
+                <Link href="/student/applications">
+                  <Button
+                      variant="outline"
+                      size="sm"
+                      className="border-red-600 text-red-600 hover:bg-red-50 bg-transparent"
+                  >
+                    <FileText className="w-4 h-4 mr-2" />
+                    My Applications ({applicationCount})
+                  </Button>
+                </Link>
+                <Badge className="bg-red-600 text-white hover:bg-red-700">Student Portal</Badge>
+              </div>
             </div>
           </div>
         </header>
@@ -207,15 +218,15 @@ export default function StudentPage() {
               </CardContent>
             </Card>
 
-            <Card className="bg-white border-gray-200">
+            <Card className="bg-white border-gray-200 hover:border-red-300 transition-colors cursor-pointer">
               <CardContent className="p-4">
                 <div className="flex items-center space-x-2">
                   <div className="w-8 h-8 bg-green-50 rounded-lg flex items-center justify-center">
-                    <Star className="w-4 h-4 text-green-600" />
+                    <FileText className="w-4 h-4 text-green-600" />
                   </div>
                   <div>
-                    <p className="text-sm text-gray-600">Avg Match Score</p>
-                    <p className="text-xl font-bold text-gray-900">{avgMatchScore}%</p>
+                    <p className="text-sm text-gray-600">Applications</p>
+                    <p className="text-xl font-bold text-gray-900">{applicationCount}</p>
                   </div>
                 </div>
               </CardContent>

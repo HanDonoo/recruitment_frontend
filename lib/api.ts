@@ -369,7 +369,6 @@ export const api = {
       }
     },
 
-    // 新增：获取指定 applicant 和 job 的最新评估结果
     getLatestAssessment: async (applicantId: number, jobId: number): Promise<ApiResponse<AssessmentResult>> => {
       try {
         const response = await fetch(`${API_BASE_URL}/job-assessments/latest?applicant_id=${applicantId}&job_id=${jobId}`)
