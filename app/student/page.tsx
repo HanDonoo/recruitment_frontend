@@ -19,6 +19,7 @@ export default function StudentPage() {
   const [showAssessment, setShowAssessment] = useState(false)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [applicationCount, setApplicationCount] = useState(0)
 
   // Calculate average match score
   const avgMatchScore = jobs.length > 0
@@ -67,6 +68,34 @@ export default function StudentPage() {
           job.company.toLowerCase().includes(searchTerm.toLowerCase()) ||
           job.tags.some((tag) => tag.toLowerCase().includes(searchTerm.toLowerCase())),
   )
+
+  const handleApply = async (jobId: number) => {
+    const job = jobs.find((j) => j.id === jobId)
+    if (!job) return
+
+    // Simulate API call
+    await new Promise((resolve) => setTimeout(resolve, 1000))
+
+    // Save application status
+    const applicationData = {
+      jobId: job.id,
+      jobTitle: job.title,
+      company: job.company,
+      appliedAt: new Date().toISOString(),
+      status: "applied",
+    }
+
+    localStorage.setItem(`application_${jobId}`, JSON.stringify(applicationData))
+
+    // Update applications list
+    const existingApplications = JSON.parse(localStorage.getItem("applications") || "[]")
+    existingApplications.push(applicationData)
+    localStorage.setItem("applications", JSON.stringify(existingApplications))
+
+    // Update local state
+    setJobs((prev) => prev.map((j) => (j.id === jobId ? { ...j, isApplied: true } : j)))
+    setApplicationCount((prev) => prev + 1)
+  }
 
   const handleAssess = (job: Job) => {
     setSelectedJob(job)
@@ -250,6 +279,7 @@ export default function StudentPage() {
                         key={job.id}
                         job={job}
                         onAssess={() => handleAssess(job)}
+                        onApply={handleApply}
                         showAssessButton={true}
                     />
                 ))

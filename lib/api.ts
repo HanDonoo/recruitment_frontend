@@ -31,6 +31,7 @@ export interface Candidate {
 
 export interface AssessmentResult {
   jobId: number
+  applicantId: number
   summary: string
   score: {
     overall: number
@@ -76,6 +77,22 @@ interface BackendJobCreate {
   skill_tags: string
   description: string
 }
+
+interface ApplicationCreate {
+  applicant_id: number
+  job_id: number
+}
+
+interface ApplicationOut {
+  id: number
+  applicant_id: number
+  job_id: number
+  job_assessment_id?: number | null
+  status: string
+  created_at: string
+  updated_at: string
+}
+
 
 // 数据转换工具函数
 const transformBackendJobToFrontend = (backendJob: BackendJob): Job => {
@@ -319,31 +336,129 @@ export const api = {
         }
       }
     },
+
+    checkAssessment: async (applicantId: number, jobId: number): Promise<ApiResponse<{ hasAssessment: boolean, assessment?: AssessmentResult }>> => {
+      try {
+        const response = await fetch(`${API_BASE_URL}/job-assessments/latest?applicant_id=${applicantId}&job_id=${jobId}`)
+
+        if (response.status === 404) {
+          // 没有找到评估记录
+          return {
+            success: true,
+            data: { hasAssessment: false }
+          }
+        }
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`)
+        }
+
+        const assessmentData = await response.json()
+        return {
+          success: true,
+          data: {
+            hasAssessment: true,
+            assessment: assessmentData
+          }
+        }
+      } catch (error) {
+        return {
+          success: false,
+          error: error instanceof Error ? error.message : 'Unknown error'
+        }
+      }
+    },
+
+    // 新增：获取指定 applicant 和 job 的最新评估结果
+    getLatestAssessment: async (applicantId: number, jobId: number): Promise<ApiResponse<AssessmentResult>> => {
+      try {
+        const response = await fetch(`${API_BASE_URL}/job-assessments/latest?applicant_id=${applicantId}&job_id=${jobId}`)
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`)
+        }
+
+        const assessmentData = await response.json()
+        return {
+          success: true,
+          data: assessmentData
+        }
+      } catch (error) {
+        return {
+          success: false,
+          error: error instanceof Error ? error.message : 'Unknown error'
+        }
+      }
+    },
+  },
+
+  applications: {
+    applyToJob: async (applicantId: number, jobId: number): Promise<ApiResponse<ApplicationOut>> => {
+      try {
+        const response = await fetch(`${API_BASE_URL}/applications`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            applicant_id: applicantId,
+            job_id: jobId,
+          }),
+        })
+
+        if (!response.ok) {
+          const errorText = await response.text()
+          throw new Error(errorText || `HTTP error! status: ${response.status}`)
+        }
+
+        const data: ApplicationOut = await response.json()
+
+        return {
+          success: true,
+          data,
+        }
+      } catch (error) {
+        return {
+          success: false,
+          error: error instanceof Error ? error.message : "Unknown error",
+        }
+      }
+    },
+
+    getApplication: async (
+        applicantId: number,
+        jobId: number
+    ): Promise<ApiResponse<ApplicationOut | null>> => {
+      try {
+        const url = new URL(`${API_BASE_URL}/applications/one`)
+        url.searchParams.append("applicant_id", applicantId.toString())
+        url.searchParams.append("job_id", jobId.toString())
+
+        const response = await fetch(url.toString(), {
+          method: "GET",
+        })
+
+        if (!response.ok) {
+          if (response.status === 404) {
+            // 404 表示没找到申请记录，返回 null
+            return { success: true, data: null }
+          }
+          const errorText = await response.text()
+          throw new Error(errorText || `HTTP error! status: ${response.status}`)
+        }
+
+        const data: ApplicationOut | null = await response.json()
+
+        return {
+          success: true,
+          data,
+        }
+      } catch (error) {
+        return {
+          success: false,
+          error: error instanceof Error ? error.message : "Unknown error",
+        }
+      }
+    },
   },
 }
-
-// 使用示例
-/*
-// 获取所有工作
-const jobsResponse = await api.jobs.getAll({ q: "python", role: "backend" })
-if (jobsResponse.success) {
-  console.log(jobsResponse.data) // Job[] 格式，tags已转换为数组
-}
-
-// 创建工作
-const newJobResponse = await api.jobs.create({
-  title: "Senior Developer",
-  company: "Tech Corp",
-  location: "Remote",
-  salary: "$100k",
-  experience: "backend",
-  tags: ["Python", "FastAPI", "PostgreSQL"],
-  description: "Great job"
-})
-
-// 获取推荐工作
-const recommendationsResponse = await api.jobs.recommendForApplicant(123)
-if (recommendationsResponse.success) {
-  console.log(recommendationsResponse.data) // 包含matchScore的Job[]
-}
-*/
