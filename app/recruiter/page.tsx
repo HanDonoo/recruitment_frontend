@@ -14,7 +14,8 @@ import { api, Job, Candidate, ApplicationOut } from "@/lib/api"
 interface CandidateWithApplication extends Candidate {
   status?: string;
   appliedAt?: string;
-  score?: number; // 确保这里是 score，匹配子组件
+  score?: number;
+  jobId?: number
 }
 
 export default function RecruiterPage() {
@@ -112,6 +113,7 @@ export default function RecruiterPage() {
           status: application?.status || 'pending',
           appliedAt: application?.created_at,
           score: scoreValue,
+          jobId: application?.job_id
         }
       })
 

@@ -201,7 +201,13 @@ export function JobCard({
             <span className="font-semibold text-red-600 text-lg">{job.salary}</span>
 
             <div className="flex space-x-2">
-              <Link href={`/student/job/${job.id}`}>
+              <Link
+                  href={
+                    showViewButton
+                        ? `/recruiter/job/${job.id}`
+                        : `/student/job/${job.id}`
+                  }
+              >
                 <Button
                     variant="outline"
                     size="sm"
@@ -232,7 +238,7 @@ export function JobCard({
                       className="border-red-600 text-red-600 hover:bg-red-600 hover:text-white bg-transparent"
                   >
                     <Eye className="w-4 h-4 mr-1" />
-                    View Candidates
+                    Candidates
                   </Button>
               )}
             </div>

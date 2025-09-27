@@ -24,7 +24,6 @@ export default function JobDetailPage() {
   const [error, setError] = useState<string | null>(null)
   const [showAssessment, setShowAssessment] = useState(false)
   const [hasAssessment, setHasAssessment] = useState(false)
-  // 🚀 新增状态：用于传递给 Header 组件
   const [applicationCount, setApplicationCount] = useState(0)
 
   // TODO: 从登录用户状态获取实际用户ID
@@ -167,26 +166,6 @@ export default function JobDetailPage() {
                   </div>
                   <div className="text-right">
                     <div className="text-2xl font-bold text-red-600 mb-2">{job.salary}</div>
-                    <div className="text-sm text-gray-600 mb-4">
-                    </div>
-                    <div className="space-y-2">
-                      <Button
-                          onClick={() => setShowAssessment(true)}
-                          className="bg-red-600 hover:bg-red-700 text-white w-full"
-                      >
-                        Assess My Match
-                      </Button>
-                      {hasAssessment && (
-                          <Link href={`/student/job/${job.id}/assessment`}>
-                            <Button
-                                variant="outline"
-                                className="border-red-600 text-red-600 hover:bg-red-50 w-full bg-transparent"
-                            >
-                              View My Assessment
-                            </Button>
-                          </Link>
-                      )}
-                    </div>
                   </div>
                 </div>
               </CardHeader>

@@ -61,19 +61,16 @@ export default function AssessmentResultPage() {
   }, [applicantId, jobId])
 
 
-  // ========================== 🚀 加载状态 (简化并使用 Header) ==========================
   if (isLoading) {
     return (
         <div className="min-h-screen bg-gray-50">
-          {/* 🚀 使用 StudentPortalHeader: 页面显示 Back 按钮 */}
           <StudentPortalHeader
               applicationCount={applicationCount}
               showBackButton={true}
-              backHref={`/student/job/${jobId}`} // 返回到职位详情页
+              backHref={`/student/job/${jobId}`}
           />
           <main className="container mx-auto px-4 py-8">
             <div className="max-w-4xl mx-auto">
-              {/* 整体骨架屏保持不变，但移除了 Header 骨架部分 */}
               {/* Overall Score Skeleton */}
               <Card className="bg-white border-gray-200 mb-6">
                 <CardContent className="pt-6">
@@ -188,7 +185,6 @@ export default function AssessmentResultPage() {
     return <Target className="w-4 h-4" />
   }
 
-  // ========================== 🚀 有数据时的正常渲染 (简化) ==========================
   // @ts-ignore
   return (
       <div className="min-h-screen bg-gray-50">

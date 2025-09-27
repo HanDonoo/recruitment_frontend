@@ -99,12 +99,12 @@ const transformBackendJobToFrontend = (backendJob: BackendJob): Job => {
     company: backendJob.company_name,
     location: backendJob.location,
     salary: backendJob.salary,
-    experience: backendJob.role, // 将role映射为experience
+    experience: backendJob.role,
     tags: backendJob.skill_tags ? backendJob.skill_tags.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0) : [],
     description: backendJob.description,
-    applicants: 0, // 后端暂无此字段，设为默认值
+    applicants: 0,
     matchScore: backendJob.matchScore,
-    feedback: undefined // 后端暂无此字段
+    feedback: undefined
   }
 }
 
