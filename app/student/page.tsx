@@ -21,46 +21,67 @@ export default function StudentPage() {
   const [error, setError] = useState<string | null>(null)
   const [applicationCount, setApplicationCount] = useState(0)
 
-  // Calculate average match score
-  const avgMatchScore = jobs.length > 0
-      ? Math.round(jobs.reduce((sum, job) => sum + (job.matchScore || 0), 0) / jobs.length)
-      : 0
+  // TODO: Replace with dynamic user ID from auth/context
+  const currentUserId = 1
 
-  // Fetch recommended jobs
+  // Fetch recommended jobs and applications data
   useEffect(() => {
-    const fetchRecommendedJobs = async () => {
+    const fetchData = async () => {
       try {
         setLoading(true)
         setError(null)
 
-        // TODO: Replace with dynamic applicant ID from auth/context
-        const applicantId = 1
+        // 并行获取推荐工作和申请数据
+        const [jobsResponse, applicationsResponse] = await Promise.all([
+          api.jobs.recommendForApplicant(currentUserId),
+          api.applications.listByApplicant(currentUserId)
+        ])
 
-        const response = await api.jobs.recommendForApplicant(applicantId)
-
-        if (response.success && response.data) {
-          setJobs(response.data)
+        // 处理工作数据
+        if (jobsResponse.success && jobsResponse.data) {
+          setJobs(jobsResponse.data)
         } else {
           // 如果推荐失败，回退到获取所有工作
-          console.warn("Failed to fetch recommended jobs, falling back to all jobs:", response.error)
+          console.warn("Failed to fetch recommended jobs, falling back to all jobs:", jobsResponse.error)
           const fallbackResponse = await api.jobs.getAll({ limit: 50 })
 
           if (fallbackResponse.success && fallbackResponse.data) {
             setJobs(fallbackResponse.data)
           } else {
             setError("Failed to load jobs. Please try again later.")
+            return
           }
         }
+
+        // 处理申请数据
+        if (applicationsResponse.success && applicationsResponse.data) {
+          setApplicationCount(applicationsResponse.data.length)
+
+          // 标记已申请的工作
+          const appliedJobIds = applicationsResponse.data.map(app => app.job_id)
+          setJobs(prevJobs =>
+              prevJobs.map(job => ({
+                ...job,
+                isApplied: appliedJobIds.includes(job.id)
+              }))
+          )
+        } else {
+          console.warn("Failed to fetch applications:", applicationsResponse.error)
+          // 申请数据获取失败时，仍然使用localStorage作为备用
+          const localApplications = JSON.parse(localStorage.getItem("applications") || "[]")
+          setApplicationCount(localApplications.length)
+        }
+
       } catch (err) {
-        console.error("Error fetching jobs:", err)
-        setError("Failed to load jobs. Please try again later.")
+        console.error("Error fetching data:", err)
+        setError("Failed to load data. Please try again later.")
       } finally {
         setLoading(false)
       }
     }
 
-    fetchRecommendedJobs()
-  }, [])
+    fetchData()
+  }, [currentUserId])
 
   const filteredJobs = jobs.filter(
       (job) =>
@@ -73,28 +94,36 @@ export default function StudentPage() {
     const job = jobs.find((j) => j.id === jobId)
     if (!job) return
 
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1000))
+    try {
+      // 使用API创建申请
+      const response = await api.applications.applyToJob(jobId, currentUserId)
 
-    // Save application status
-    const applicationData = {
-      jobId: job.id,
-      jobTitle: job.title,
-      company: job.company,
-      appliedAt: new Date().toISOString(),
-      status: "applied",
+      if (response.success) {
+        // 更新本地状态
+        setJobs((prev) => prev.map((j) => (j.id === jobId ? { ...j, isApplied: true } : j)))
+        setApplicationCount((prev) => prev + 1)
+
+        // 可选：仍然保存到localStorage作为备用
+        const applicationData = {
+          jobId: job.id,
+          jobTitle: job.title,
+          company: job.company,
+          appliedAt: new Date().toISOString(),
+          status: "applied",
+        }
+        localStorage.setItem(`application_${jobId}`, JSON.stringify(applicationData))
+
+        const existingApplications = JSON.parse(localStorage.getItem("applications") || "[]")
+        existingApplications.push(applicationData)
+        localStorage.setItem("applications", JSON.stringify(existingApplications))
+      } else {
+        alert("Failed to submit application. Please try again.")
+        console.error("Application failed:", response.error)
+      }
+    } catch (error) {
+      alert("Failed to submit application. Please try again.")
+      console.error("Error applying for job:", error)
     }
-
-    localStorage.setItem(`application_${jobId}`, JSON.stringify(applicationData))
-
-    // Update applications list
-    const existingApplications = JSON.parse(localStorage.getItem("applications") || "[]")
-    existingApplications.push(applicationData)
-    localStorage.setItem("applications", JSON.stringify(existingApplications))
-
-    // Update local state
-    setJobs((prev) => prev.map((j) => (j.id === jobId ? { ...j, isApplied: true } : j)))
-    setApplicationCount((prev) => prev + 1)
   }
 
   const handleAssess = (job: Job) => {
@@ -126,10 +155,73 @@ export default function StudentPage() {
 
   if (loading) {
     return (
-        <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-600 mx-auto mb-4"></div>
-            <p className="text-gray-600">Loading recommended jobs...</p>
+        <div className="min-h-screen bg-gray-50">
+          {/* 新的移动端友好Header */}
+          <header className="border-b border-gray-200 bg-white sticky top-0 z-40">
+            <div className="container mx-auto px-4 py-3">
+              {/* Desktop Layout */}
+              <div className="hidden md:flex items-center justify-between">
+                <div className="flex items-center space-x-3">
+                  <Link href="/">
+                    <Button variant="ghost" size="sm" className="text-gray-600 hover:text-gray-900">
+                      <ArrowLeft className="w-4 h-4 mr-2" />
+                      Back
+                    </Button>
+                  </Link>
+                  <div className="w-8 h-8 bg-red-600 rounded-full flex items-center justify-center">
+                    <span className="text-white font-bold text-xs">SoT</span>
+                  </div>
+                  <h1 className="text-lg font-semibold text-gray-900">Student Portal</h1>
+                </div>
+                <div className="flex items-center space-x-3">
+                  <Link href="/student/applications">
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        className="border-red-600 text-red-600 hover:bg-red-50 bg-transparent"
+                    >
+                      <FileText className="w-4 h-4 mr-2" />
+                      Applications ({applicationCount})
+                    </Button>
+                  </Link>
+                </div>
+              </div>
+
+              {/* Mobile Layout */}
+              <div className="md:hidden flex items-center justify-between">
+                {/* Left side */}
+                <div className="flex items-center space-x-2">
+                  <Link href="/">
+                    <Button variant="ghost" size="sm" className="p-1 h-8 w-8">
+                      <ArrowLeft className="w-4 h-4" />
+                    </Button>
+                  </Link>
+                  <div className="w-7 h-7 bg-red-600 rounded-full flex items-center justify-center">
+                    <span className="text-white font-bold text-xs">SoT</span>
+                  </div>
+                  <span className="text-sm font-medium text-gray-900">Portal</span>
+                </div>
+
+                {/* Right side */}
+                <Link href="/student/applications">
+                  <Button
+                      variant="outline"
+                      size="sm"
+                      className="border-red-600 text-red-600 hover:bg-red-50 text-xs px-3 py-1.5 h-8"
+                  >
+                    <FileText className="w-3 h-3 mr-1" />
+                    {applicationCount}
+                  </Button>
+                </Link>
+              </div>
+            </div>
+          </header>
+
+          <div className="flex items-center justify-center min-h-[calc(100vh-80px)]">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-600 mx-auto mb-4"></div>
+              <p className="text-gray-600">Loading recommended jobs...</p>
+            </div>
           </div>
         </div>
     )
@@ -137,14 +229,77 @@ export default function StudentPage() {
 
   if (error) {
     return (
-        <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-          <div className="text-center max-w-md">
-            <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
-            <h2 className="text-xl font-semibold text-gray-900 mb-2">Something went wrong</h2>
-            <p className="text-gray-600 mb-4">{error}</p>
-            <Button onClick={handleRetry} className="bg-red-600 hover:bg-red-700">
-              Try Again
-            </Button>
+        <div className="min-h-screen bg-gray-50">
+          {/* 新的移动端友好Header */}
+          <header className="border-b border-gray-200 bg-white sticky top-0 z-40">
+            <div className="container mx-auto px-4 py-3">
+              {/* Desktop Layout */}
+              <div className="hidden md:flex items-center justify-between">
+                <div className="flex items-center space-x-3">
+                  <Link href="/">
+                    <Button variant="ghost" size="sm" className="text-gray-600 hover:text-gray-900">
+                      <ArrowLeft className="w-4 h-4 mr-2" />
+                      Back
+                    </Button>
+                  </Link>
+                  <div className="w-8 h-8 bg-red-600 rounded-full flex items-center justify-center">
+                    <span className="text-white font-bold text-xs">SoT</span>
+                  </div>
+                  <h1 className="text-lg font-semibold text-gray-900">Student Portal</h1>
+                </div>
+                <div className="flex items-center space-x-3">
+                  <Link href="/student/applications">
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        className="border-red-600 text-red-600 hover:bg-red-50 bg-transparent"
+                    >
+                      <FileText className="w-4 h-4 mr-2" />
+                      Applications ({applicationCount})
+                    </Button>
+                  </Link>
+                </div>
+              </div>
+
+              {/* Mobile Layout */}
+              <div className="md:hidden flex items-center justify-between">
+                {/* Left side */}
+                <div className="flex items-center space-x-2">
+                  <Link href="/">
+                    <Button variant="ghost" size="sm" className="p-1 h-8 w-8">
+                      <ArrowLeft className="w-4 h-4" />
+                    </Button>
+                  </Link>
+                  <div className="w-7 h-7 bg-red-600 rounded-full flex items-center justify-center">
+                    <span className="text-white font-bold text-xs">SoT</span>
+                  </div>
+                  <span className="text-sm font-medium text-gray-900">Portal</span>
+                </div>
+
+                {/* Right side */}
+                <Link href="/student/applications">
+                  <Button
+                      variant="outline"
+                      size="sm"
+                      className="border-red-600 text-red-600 hover:bg-red-50 text-xs px-3 py-1.5 h-8"
+                  >
+                    <FileText className="w-3 h-3 mr-1" />
+                    {applicationCount}
+                  </Button>
+                </Link>
+              </div>
+            </div>
+          </header>
+
+          <div className="flex items-center justify-center min-h-[calc(100vh-80px)]">
+            <div className="text-center max-w-md">
+              <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
+              <h2 className="text-xl font-semibold text-gray-900 mb-2">Something went wrong</h2>
+              <p className="text-gray-600 mb-4">{error}</p>
+              <Button onClick={handleRetry} className="bg-red-600 hover:bg-red-700">
+                Try Again
+              </Button>
+            </div>
           </div>
         </div>
     )
@@ -152,19 +307,24 @@ export default function StudentPage() {
 
   return (
       <div className="min-h-screen bg-gray-50">
+        {/* 新的移动端友好Header */}
         <header className="border-b border-gray-200 bg-white sticky top-0 z-40">
-          <div className="container mx-auto px-4 py-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-3">
+          <div className="container mx-auto px-4 py-3">
+            {/* Desktop Layout */}
+            <div className="hidden md:flex items-center justify-between">
+              <div className="flex items-center">
                 <Link href="/">
                   <Button variant="ghost" size="sm" className="text-gray-600 hover:text-gray-900">
                     <ArrowLeft className="w-4 h-4 mr-2" />
                     Back
                   </Button>
                 </Link>
+              </div>
+              <div className="flex items-center space-x-3">
                 <div className="w-8 h-8 bg-red-600 rounded-full flex items-center justify-center">
                   <span className="text-white font-bold text-xs">SoT</span>
                 </div>
+                <h1 className="text-lg font-semibold text-gray-900">Student Portal</h1>
               </div>
               <div className="flex items-center space-x-3">
                 <Link href="/student/applications">
@@ -174,11 +334,40 @@ export default function StudentPage() {
                       className="border-red-600 text-red-600 hover:bg-red-50 bg-transparent"
                   >
                     <FileText className="w-4 h-4 mr-2" />
-                    My Applications ({applicationCount})
+                    Applications ({applicationCount})
                   </Button>
                 </Link>
-                <Badge className="bg-red-600 text-white hover:bg-red-700">Student Portal</Badge>
               </div>
+            </div>
+
+            {/* Mobile Layout */}
+            <div className="md:hidden flex items-center justify-between">
+              {/* Left side - Back button */}
+              <Link href="/">
+                <Button variant="ghost" size="sm" className="p-1 h-8 w-8">
+                  <ArrowLeft className="w-4 h-4" />
+                </Button>
+              </Link>
+
+              {/* Center - Logo and Portal text */}
+              <div className="flex items-center space-x-2">
+                <div className="w-7 h-7 bg-red-600 rounded-full flex items-center justify-center">
+                  <span className="text-white font-bold text-xs">SoT</span>
+                </div>
+                <span className="text-sm font-medium text-gray-900">Portal</span>
+              </div>
+
+              {/* Right side - Applications button */}
+              <Link href="/student/applications">
+                <Button
+                    variant="outline"
+                    size="sm"
+                    className="border-red-600 text-red-600 hover:bg-red-50 text-xs px-3 py-1.5 h-8"
+                >
+                  <FileText className="w-3 h-3 mr-1" />
+                  {applicationCount}
+                </Button>
+              </Link>
             </div>
           </div>
         </header>

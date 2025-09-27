@@ -459,5 +459,43 @@ export const api = {
         }
       }
     },
+
+    listByApplicant: async (
+        applicantId: number,
+        limit = 50,
+        offset = 0
+    ): Promise<ApiResponse<ApplicationOut[]>> => {
+      try {
+        const url = new URL(`${API_BASE_URL}/applications`)
+        url.searchParams.append("applicant_id", applicantId.toString())
+        url.searchParams.append("limit", limit.toString())
+        url.searchParams.append("offset", offset.toString())
+
+        const response = await fetch(url.toString(), {
+          method: "GET",
+        })
+
+        if (!response.ok) {
+          if (response.status === 404) {
+            // 没有申请记录，返回空数组
+            return { success: true, data: [] }
+          }
+          const errorText = await response.text()
+          throw new Error(errorText || `HTTP error! status: ${response.status}`)
+        }
+
+        const data: ApplicationOut[] = await response.json()
+
+        return {
+          success: true,
+          data,
+        }
+      } catch (error) {
+        return {
+          success: false,
+          error: error instanceof Error ? error.message : "Unknown error",
+        }
+      }
+    },
   },
 }
