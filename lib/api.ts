@@ -23,10 +23,8 @@ export interface Candidate {
   major: string
   year: string
   skills: string[]
-  resumeUrl: string
-  appliedJobs: number[]
-  overallScore?: number
-  assessments?: AssessmentResult[]
+  desired_role: string
+  desired_location?: string
 }
 
 export interface AssessmentResult {
@@ -52,7 +50,6 @@ export interface ApiResponse<T> {
   message?: string
 }
 
-// 后端返回的原始数据结构
 interface BackendJob {
   id: number
   title: string
@@ -130,6 +127,40 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"
 export const api = {
   // Job endpoints
   jobs: {
+
+    getByCompanyId: async (
+        companyId: number,
+        params?: { q?: string; limit?: number }
+    ): Promise<ApiResponse<Job[]>> => {
+      try {
+        const searchParams = new URLSearchParams()
+        searchParams.append('company_id', companyId.toString())
+        if (params?.q) searchParams.append('q', params.q)
+        if (params?.limit) searchParams.append('limit', params.limit.toString())
+
+        const url = `${API_BASE_URL}/jobs/by_company?${searchParams.toString()}`
+
+        const response = await fetch(url)
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`)
+        }
+
+        const backendJobs: BackendJob[] = await response.json()
+        const frontendJobs = backendJobs.map(transformBackendJobToFrontend)
+
+        return {
+          success: true,
+          data: frontendJobs
+        }
+      } catch (error) {
+        return {
+          success: false,
+          error: error instanceof Error ? error.message : 'Unknown error'
+        }
+      }
+    },
+
     getByIds: async (jobIds: number[]): Promise<ApiResponse<Job[]>> => {
       try {
         const jobIdsString = jobIds.join(",")
@@ -267,11 +298,11 @@ export const api = {
     },
   },
 
-  // Candidate endpoints
-  candidates: {
+  // Applicant endpoints
+  applicants: {
     getAll: async (): Promise<ApiResponse<Candidate[]>> => {
       try {
-        const response = await fetch(`${API_BASE_URL}/candidates`)
+        const response = await fetch(`${API_BASE_URL}/applicants`)
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`)
         }
@@ -287,9 +318,9 @@ export const api = {
       }
     },
 
-    getByJobId: async (jobId: number): Promise<ApiResponse<Candidate[]>> => {
+    getById: async (applicantId: number): Promise<ApiResponse<Candidate>> => {
       try {
-        const response = await fetch(`${API_BASE_URL}/jobs/${jobId}/candidates`)
+        const response = await fetch(`${API_BASE_URL}/applicants/${applicantId}`)
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`)
         }
@@ -305,9 +336,16 @@ export const api = {
       }
     },
 
-    getTopCandidates: async (jobId: number, limit = 5): Promise<ApiResponse<Candidate[]>> => {
+    getFilteredApplicants: async (
+        q: string | null = null,
+        desired_role: string | null = null,
+        desired_location: string | null = null,
+        limit: number = 50,
+        offset: number = 0
+    ): Promise<ApiResponse<Candidate[]>> => {
       try {
-        const response = await fetch(`${API_BASE_URL}/jobs/${jobId}/candidates/top?limit=${limit}`)
+        let url = `${API_BASE_URL}/applicants?q=${q || ""}&desired_role=${desired_role || ""}&desired_location=${desired_location || ""}&limit=${limit}&offset=${offset}`
+        const response = await fetch(url)
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`)
         }
@@ -322,6 +360,45 @@ export const api = {
         }
       }
     },
+
+    getByIds: async (applicantIds: number[]): Promise<ApiResponse<Candidate[]>> => {
+      try {
+        // 将 applicantIds 数组转化为逗号分隔的字符串
+        const idsString = applicantIds.join(',');
+
+        const response = await fetch(`${API_BASE_URL}/applicants/by_ids?applicant_ids=${idsString}`);
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const rawCandidates: any[] = await response.json();
+
+        const candidates: Candidate[] = rawCandidates.map(rawCandidate => {
+
+          const skillsArray = (rawCandidate.skill_tags as string)
+              ? rawCandidate.skill_tags
+                  .split(',')
+                  .map((s: string) => s.trim())
+                  .filter((s: string) => s.length > 0)
+              : [];
+          const { skill_tags, ...rest } = rawCandidate;
+
+          return {
+            ...rest,
+            skills: skillsArray,
+          } as Candidate;
+        });
+
+        return {
+          success: true,
+          data: candidates
+        };
+      } catch (error) {
+        return {
+          success: false,
+          error: error instanceof Error ? error.message : 'Unknown error'
+        };
+      }
+    }
   },
 
   // Assessment endpoints
@@ -504,6 +581,47 @@ export const api = {
 
         if (!response.ok) {
           if (response.status === 404) {
+            return { success: true, data: [] }
+          }
+          const errorText = await response.text()
+          throw new Error(errorText || `HTTP error! status: ${response.status}`)
+        }
+
+        const data: ApplicationOut[] = await response.json()
+
+        return {
+          success: true,
+          data,
+        }
+      } catch (error) {
+        return {
+          success: false,
+          error: error instanceof Error ? error.message : "Unknown error",
+        }
+      }
+    },
+
+    listByJobAndCompany: async (
+        jobId: number,
+        companyId: number,
+        limit: number = 50,
+        offset: number = 0
+    ): Promise<ApiResponse<ApplicationOut[]>> => {
+      try {
+        const url = new URL(`${API_BASE_URL}/applications/by_job_and_company`)
+
+        url.searchParams.append("job_id", jobId.toString())
+        url.searchParams.append("company_id", companyId.toString())
+        url.searchParams.append("limit", limit.toString())
+        url.searchParams.append("offset", offset.toString())
+
+        const response = await fetch(url.toString(), {
+          method: "GET",
+        })
+
+        if (!response.ok) {
+          if (response.status === 404) {
+            // 后端在没有结果时返回 404，我们返回空数组
             return { success: true, data: [] }
           }
           const errorText = await response.text()

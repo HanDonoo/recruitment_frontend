@@ -154,7 +154,8 @@ export function JobCard({
             {job.matchScore && (
                 <div className="flex items-center space-x-1 bg-green-50 px-2 py-1 rounded-full">
                   <Star className="w-3 h-3 text-green-600" />
-                  <span className="text-xs font-medium text-green-600">{job.matchScore}%</span>
+                  {/* Changed the label text here: */}
+                  <span className="text-xs font-medium text-green-600">Skill Fit {job.matchScore}%</span>
                 </div>
             )}
           </div>
@@ -176,7 +177,7 @@ export function JobCard({
             </div>
           </div>
 
-          <p className="text-sm text-gray-600 line-clamp-2">{job.description}</p>
+          {/*<p className="text-sm text-gray-600 line-clamp-2">{job.description}</p>*/}
 
           <div className="flex flex-wrap gap-1">
             {job.tags.map((tag) => (
