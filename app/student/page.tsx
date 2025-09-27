@@ -5,11 +5,11 @@ import Link from "next/link"
 import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
-import { Search, Star, Clock, Users, ArrowLeft, AlertCircle, FileText } from "lucide-react"
+import { Search, Clock, Users, AlertCircle, FileText } from "lucide-react"
 import { JobCard } from "@/components/job-card"
 import { AssessmentModal } from "@/components/assessment-modal"
-import { api } from "@/lib/api"
-import { Job } from "@/lib/api"
+import { api, Job } from "@/lib/api"
+import { StudentPortalHeader } from "@/components/student-portal-header"
 
 export default function StudentPage() {
   const [jobs, setJobs] = useState<Job[]>([])
@@ -36,11 +36,10 @@ export default function StudentPage() {
           api.applications.listByApplicant(currentUserId)
         ])
 
-        // 处理工作数据
+        // 1. 处理工作数据
         if (jobsResponse.success && jobsResponse.data) {
           setJobs(jobsResponse.data)
         } else {
-          // 如果推荐失败，回退到获取所有工作
           console.warn("Failed to fetch recommended jobs, falling back to all jobs:", jobsResponse.error)
           const fallbackResponse = await api.jobs.getAll({ limit: 50 })
 
@@ -52,7 +51,7 @@ export default function StudentPage() {
           }
         }
 
-        // 处理申请数据
+        // 2. 处理申请数据
         if (applicationsResponse.success && applicationsResponse.data) {
           setApplicationCount(applicationsResponse.data.length)
 
@@ -86,7 +85,7 @@ export default function StudentPage() {
       (job) =>
           job.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
           job.company.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          job.tags.some((tag) => tag.toLowerCase().includes(searchTerm.toLowerCase())),
+          (job.tags && job.tags.some((tag) => tag.toLowerCase().includes(searchTerm.toLowerCase()))),
   )
 
   const handleApply = async (jobId: number) => {
@@ -94,15 +93,12 @@ export default function StudentPage() {
     if (!job) return
 
     try {
-      // 使用API创建申请
       const response = await api.applications.applyToJob(jobId, currentUserId)
 
       if (response.success) {
-        // 更新本地状态
         setJobs((prev) => prev.map((j) => (j.id === jobId ? { ...j, isApplied: true } : j)))
         setApplicationCount((prev) => prev + 1)
 
-        // 可选：仍然保存到localStorage作为备用
         const applicationData = {
           jobId: job.id,
           jobTitle: job.title,
@@ -152,69 +148,12 @@ export default function StudentPage() {
     window.location.reload()
   }
 
+  // ========================== 🚀 加载状态 (简化) ==========================
   if (loading) {
     return (
         <div className="min-h-screen bg-gray-50">
-          {/* 新的移动端友好Header */}
-          <header className="border-b border-gray-200 bg-white sticky top-0 z-40">
-            <div className="container mx-auto px-4 py-3">
-              {/* Desktop Layout */}
-              <div className="hidden md:flex items-center justify-between">
-                <div className="flex items-center space-x-3">
-                  <Link href="/">
-                    <Button variant="ghost" size="sm" className="text-gray-600 hover:text-gray-900">
-                      <ArrowLeft className="w-4 h-4 mr-2" />
-                      Back
-                    </Button>
-                  </Link>
-                  <div className="w-8 h-8 bg-red-600 rounded-full flex items-center justify-center">
-                    <span className="text-white font-bold text-xs">SoT</span>
-                  </div>
-                  <h1 className="text-lg font-semibold text-gray-900">Student Portal</h1>
-                </div>
-                <div className="flex items-center space-x-3">
-                  <Link href="/student/applications">
-                    <Button
-                        variant="outline"
-                        size="sm"
-                        className="border-red-600 text-red-600 hover:bg-red-50 bg-transparent"
-                    >
-                      <FileText className="w-4 h-4 mr-2" />
-                      Applications ({applicationCount})
-                    </Button>
-                  </Link>
-                </div>
-              </div>
-
-              {/* Mobile Layout */}
-              <div className="md:hidden flex items-center justify-between">
-                {/* Left side */}
-                <div className="flex items-center space-x-2">
-                  <Link href="/">
-                    <Button variant="ghost" size="sm" className="p-1 h-8 w-8">
-                      <ArrowLeft className="w-4 h-4" />
-                    </Button>
-                  </Link>
-                  <div className="w-7 h-7 bg-red-600 rounded-full flex items-center justify-center">
-                    <span className="text-white font-bold text-xs">SoT</span>
-                  </div>
-                  <span className="text-sm font-medium text-gray-900">Portal</span>
-                </div>
-
-                {/* Right side */}
-                <Link href="/student/applications">
-                  <Button
-                      variant="outline"
-                      size="sm"
-                      className="border-red-600 text-red-600 hover:bg-red-50 text-xs px-3 py-1.5 h-8"
-                  >
-                    <FileText className="w-3 h-3 mr-1" />
-                    {applicationCount}
-                  </Button>
-                </Link>
-              </div>
-            </div>
-          </header>
+          {/* 🚀 使用 StudentPortalHeader: 主页不显示返回按钮 */}
+          <StudentPortalHeader applicationCount={applicationCount} showBackButton={false} />
 
           <div className="flex items-center justify-center min-h-[calc(100vh-80px)]">
             <div className="text-center">
@@ -226,69 +165,12 @@ export default function StudentPage() {
     )
   }
 
+  // ========================== 🚀 错误状态 (简化) ==========================
   if (error) {
     return (
         <div className="min-h-screen bg-gray-50">
-          {/* 新的移动端友好Header */}
-          <header className="border-b border-gray-200 bg-white sticky top-0 z-40">
-            <div className="container mx-auto px-4 py-3">
-              {/* Desktop Layout */}
-              <div className="hidden md:flex items-center justify-between">
-                <div className="flex items-center space-x-3">
-                  <Link href="/">
-                    <Button variant="ghost" size="sm" className="text-gray-600 hover:text-gray-900">
-                      <ArrowLeft className="w-4 h-4 mr-2" />
-                      Back
-                    </Button>
-                  </Link>
-                  <div className="w-8 h-8 bg-red-600 rounded-full flex items-center justify-center">
-                    <span className="text-white font-bold text-xs">SoT</span>
-                  </div>
-                  <h1 className="text-lg font-semibold text-gray-900">Student Portal</h1>
-                </div>
-                <div className="flex items-center space-x-3">
-                  <Link href="/student/applications">
-                    <Button
-                        variant="outline"
-                        size="sm"
-                        className="border-red-600 text-red-600 hover:bg-red-50 bg-transparent"
-                    >
-                      <FileText className="w-4 h-4 mr-2" />
-                      Applications ({applicationCount})
-                    </Button>
-                  </Link>
-                </div>
-              </div>
-
-              {/* Mobile Layout */}
-              <div className="md:hidden flex items-center justify-between">
-                {/* Left side */}
-                <div className="flex items-center space-x-2">
-                  <Link href="/">
-                    <Button variant="ghost" size="sm" className="p-1 h-8 w-8">
-                      <ArrowLeft className="w-4 h-4" />
-                    </Button>
-                  </Link>
-                  <div className="w-7 h-7 bg-red-600 rounded-full flex items-center justify-center">
-                    <span className="text-white font-bold text-xs">SoT</span>
-                  </div>
-                  <span className="text-sm font-medium text-gray-900">Portal</span>
-                </div>
-
-                {/* Right side */}
-                <Link href="/student/applications">
-                  <Button
-                      variant="outline"
-                      size="sm"
-                      className="border-red-600 text-red-600 hover:bg-red-50 text-xs px-3 py-1.5 h-8"
-                  >
-                    <FileText className="w-3 h-3 mr-1" />
-                    {applicationCount}
-                  </Button>
-                </Link>
-              </div>
-            </div>
-          </header>
+          {/* 🚀 使用 StudentPortalHeader: 主页不显示返回按钮 */}
+          <StudentPortalHeader applicationCount={applicationCount} showBackButton={false} />
 
           <div className="flex items-center justify-center min-h-[calc(100vh-80px)]">
             <div className="text-center max-w-md">
@@ -304,72 +186,11 @@ export default function StudentPage() {
     )
   }
 
+  // ========================== 🚀 主内容 ==========================
   return (
       <div className="min-h-screen bg-gray-50">
-        {/* 新的移动端友好Header */}
-        <header className="border-b border-gray-200 bg-white sticky top-0 z-40">
-          <div className="container mx-auto px-4 py-3">
-            {/* Desktop Layout */}
-            <div className="hidden md:flex items-center justify-between">
-              <div className="flex items-center">
-                <Link href="/">
-                  <Button variant="ghost" size="sm" className="text-gray-600 hover:text-gray-900">
-                    <ArrowLeft className="w-4 h-4 mr-2" />
-                    Back
-                  </Button>
-                </Link>
-              </div>
-              <div className="flex items-center space-x-3">
-                <div className="w-8 h-8 bg-red-600 rounded-full flex items-center justify-center">
-                  <span className="text-white font-bold text-xs">SoT</span>
-                </div>
-                <h1 className="text-lg font-semibold text-gray-900">Student Portal</h1>
-              </div>
-              <div className="flex items-center space-x-3">
-                <Link href="/student/applications">
-                  <Button
-                      variant="outline"
-                      size="sm"
-                      className="border-red-600 text-red-600 hover:bg-red-50 bg-transparent"
-                  >
-                    <FileText className="w-4 h-4 mr-2" />
-                    Applications ({applicationCount})
-                  </Button>
-                </Link>
-              </div>
-            </div>
-
-            {/* Mobile Layout */}
-            <div className="md:hidden flex items-center justify-between">
-              {/* Left side - Back button */}
-              <Link href="/">
-                <Button variant="ghost" size="sm" className="p-1 h-8 w-8">
-                  <ArrowLeft className="w-4 h-4" />
-                </Button>
-              </Link>
-
-              {/* Center - Logo and Portal text */}
-              <div className="flex items-center space-x-2">
-                <div className="w-7 h-7 bg-red-600 rounded-full flex items-center justify-center">
-                  <span className="text-white font-bold text-xs">SoT</span>
-                </div>
-                <span className="text-sm font-medium text-gray-900">Portal</span>
-              </div>
-
-              {/* Right side - Applications button */}
-              <Link href="/student/applications">
-                <Button
-                    variant="outline"
-                    size="sm"
-                    className="border-red-600 text-red-600 hover:bg-red-50 text-xs px-3 py-1.5 h-8"
-                >
-                  <FileText className="w-3 h-3 mr-1" />
-                  {applicationCount}
-                </Button>
-              </Link>
-            </div>
-          </div>
-        </header>
+        {/* 🚀 使用 StudentPortalHeader 组件 */}
+        <StudentPortalHeader applicationCount={applicationCount} showBackButton={false} />
 
         <main className="container mx-auto px-4 py-8">
           <div className="mb-8">

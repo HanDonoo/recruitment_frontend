@@ -6,8 +6,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
-import { ArrowLeft, Building, Calendar, TrendingUp, Clock, CheckCircle, XCircle } from "lucide-react"
+// 移除 ArrowLeft，因为它现在在 Header 组件内部
+import { Building, Calendar, TrendingUp, Clock, CheckCircle, XCircle } from "lucide-react"
 import { api, ApplicationOut, Job } from "@/lib/api"
+// 🚀 导入新的 Header 组件
+import { StudentPortalHeader } from "@/components/student-portal-header"
 
 interface Application {
   jobId: number
@@ -146,32 +149,21 @@ export default function ApplicationsPage() {
   const getProgressPercentage = (status: string) => {
     const statusInfo = statusProgression[status as keyof typeof statusProgression]
     if (!statusInfo) return 0
+    // Rejected is a final state, often shown as 100% completion of the process, but off the main path.
     if (status === "rejected") return 100
     return (statusInfo.step / statusInfo.total) * 100
   }
 
   return (
       <div className="min-h-screen bg-gray-50">
-        {/* Header */}
-        <header className="border-b border-gray-200 bg-white sticky top-0 z-40">
-          <div className="container mx-auto px-4 py-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-3">
-                <Link href="/student">
-                  <Button variant="ghost" size="sm" className="text-gray-600 hover:text-gray-900">
-                    <ArrowLeft className="w-4 h-4 mr-2" />
-                    Back to Jobs
-                  </Button>
-                </Link>
-                <div className="w-8 h-8 bg-red-600 rounded-full flex items-center justify-center">
-                  <span className="text-white font-bold text-xs">SoT</span>
-                </div>
-                <h1 className="text-xl font-bold text-gray-900">Summer of Tech</h1>
-              </div>
-              <Badge className="bg-red-600 text-white hover:bg-red-700">Student Portal</Badge>
-            </div>
-          </div>
-        </header>
+        {/* 🚀 使用 StudentPortalHeader 组件 */}
+        {/* 传入 stats.total 作为 applicationCount，并确保显示 Back 按钮 */}
+        <StudentPortalHeader
+            applicationCount={stats.total}
+            showBackButton={true}
+            // 确保 Back 按钮返回到 /student 主页
+            backHref="/student"
+        />
 
         <main className="container mx-auto px-4 py-8">
           <div className="max-w-4xl mx-auto">
@@ -198,6 +190,7 @@ export default function ApplicationsPage() {
                 </Card>
             )}
 
+            {/* Application Stats Cards */}
             {!isLoading && applications.length > 0 && (
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
                   <Card className="bg-white border-gray-200">
@@ -261,7 +254,7 @@ export default function ApplicationsPage() {
             )}
 
             {/* Applications List */}
-            {!isLoading && applications.length === 0 ? (
+            {!isLoading && applications.length === 0 && !error ? (
                 <Card className="bg-white border-gray-200">
                   <CardContent className="p-8 text-center">
                     <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">

@@ -7,53 +7,73 @@ import { useParams } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { ArrowLeft, Star, TrendingUp, BookOpen, Target, Award, Loader2 } from "lucide-react"
+import { Star, TrendingUp, BookOpen, Target, Award, Loader2 } from "lucide-react"
 import { AssessmentRadarChart } from "@/components/radar-chart"
+import { StudentPortalHeader } from "@/components/student-portal-header"
 
 export default function AssessmentResultPage() {
   const params = useParams()
   const jobId = Number.parseInt(params.id as string)
+
   const [assessment, setAssessment] = useState<any>(null)
-  const [jobTitle, setJobTitle] = useState("")
+  // 移除 jobTitle 状态，因为它在页面中没有被使用
   const [isLoading, setIsLoading] = useState(true)
+  // 🚀 新增状态：用于 Header
+  const [applicationCount, setApplicationCount] = useState(0)
+
+  // TODO: 从登录用户状态获取实际用户ID
   const applicantId = 1
 
   useEffect(() => {
-    const fetchAssessment = async () => {
+    const fetchData = async () => {
       setIsLoading(true)
-      const result = await api.assessment.getLatestAssessment(applicantId, jobId)
 
-      if (result.success && result.data) {
-        setAssessment(result.data)
-      } else {
+      try {
+        // 1. 并行获取评估结果和应用计数
+        const [assessmentResult, applicationsResponse] = await Promise.all([
+          api.assessment.getLatestAssessment(applicantId, jobId),
+          api.applications.listByApplicant(applicantId)
+        ])
+
+        if (assessmentResult.success && assessmentResult.data) {
+          setAssessment(assessmentResult.data)
+        } else {
+          setAssessment(null)
+        }
+
+        // 设置申请计数
+        if (applicationsResponse.success && applicationsResponse.data) {
+          setApplicationCount(applicationsResponse.data.length)
+        } else {
+          console.error("Failed to fetch application count:", applicationsResponse.error)
+          setApplicationCount(0)
+        }
+
+      } catch (e) {
+        console.error("Error fetching data:", e)
         setAssessment(null)
+      } finally {
+        setIsLoading(false)
       }
-      setIsLoading(false)
     }
 
-    fetchAssessment()
+    fetchData()
   }, [applicantId, jobId])
 
-  // 加载状态 - 骨架屏
+
+  // ========================== 🚀 加载状态 (简化并使用 Header) ==========================
   if (isLoading) {
     return (
         <div className="min-h-screen bg-gray-50">
-          {/* Header Skeleton */}
-          <header className="border-b border-gray-200 bg-white sticky top-0 z-40">
-            <div className="container mx-auto px-4 py-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-3">
-                  <div className="w-16 h-8 bg-gray-200 rounded animate-pulse"></div>
-                  <div className="w-8 h-8 bg-gray-200 rounded-full animate-pulse"></div>
-                  <div className="w-48 h-6 bg-gray-200 rounded animate-pulse"></div>
-                </div>
-                <div className="w-32 h-6 bg-gray-200 rounded animate-pulse"></div>
-              </div>
-            </div>
-          </header>
-
+          {/* 🚀 使用 StudentPortalHeader: 页面显示 Back 按钮 */}
+          <StudentPortalHeader
+              applicationCount={applicationCount}
+              showBackButton={true}
+              backHref={`/student/job/${jobId}`} // 返回到职位详情页
+          />
           <main className="container mx-auto px-4 py-8">
             <div className="max-w-4xl mx-auto">
+              {/* 整体骨架屏保持不变，但移除了 Header 骨架部分 */}
               {/* Overall Score Skeleton */}
               <Card className="bg-white border-gray-200 mb-6">
                 <CardContent className="pt-6">
@@ -123,30 +143,16 @@ export default function AssessmentResultPage() {
     )
   }
 
-  // 真正没有数据的情况
+  // ========================== 🚀 无数据状态 (简化并使用 Header) ==========================
   if (!assessment) {
     return (
         <div className="min-h-screen bg-gray-50">
-          {/* Header */}
-          <header className="border-b border-gray-200 bg-white sticky top-0 z-40">
-            <div className="container mx-auto px-4 py-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-3">
-                  <Link href={`/student/job/${jobId}`}>
-                    <Button variant="ghost" size="sm" className="text-gray-600 hover:text-gray-900">
-                      <ArrowLeft className="w-4 h-4 mr-2" />
-                      Back
-                    </Button>
-                  </Link>
-                  <div className="w-8 h-8 bg-red-600 rounded-full flex items-center justify-center">
-                    <span className="text-white font-bold text-xs">SoT</span>
-                  </div>
-                  <h1 className="text-xl font-bold text-gray-900">Assessment Results</h1>
-                </div>
-                <Badge className="bg-red-600 text-white hover:bg-red-700">Student Portal</Badge>
-              </div>
-            </div>
-          </header>
+          {/* 🚀 使用 StudentPortalHeader */}
+          <StudentPortalHeader
+              applicationCount={applicationCount}
+              showBackButton={true}
+              backHref={`/student/job/${jobId}`}
+          />
 
           {/* No Data State */}
           <div className="flex items-center justify-center min-h-[calc(100vh-80px)]">
@@ -169,6 +175,7 @@ export default function AssessmentResultPage() {
     )
   }
 
+  // --- 辅助函数保持不变 ---
   const getScoreColor = (score: number) => {
     if (score >= 80) return "text-green-600 bg-green-50"
     if (score >= 60) return "text-yellow-600 bg-yellow-50"
@@ -181,29 +188,16 @@ export default function AssessmentResultPage() {
     return <Target className="w-4 h-4" />
   }
 
-  // 有数据时的正常渲染
+  // ========================== 🚀 有数据时的正常渲染 (简化) ==========================
+  // @ts-ignore
   return (
       <div className="min-h-screen bg-gray-50">
-        {/* Header */}
-        <header className="border-b border-gray-200 bg-white sticky top-0 z-40">
-          <div className="container mx-auto px-4 py-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-3">
-                <Link href={`/student/job/${jobId}`}>
-                  <Button variant="ghost" size="sm" className="text-gray-600 hover:text-gray-900">
-                    <ArrowLeft className="w-4 h-4 mr-2" />
-                    Back
-                  </Button>
-                </Link>
-                <div className="w-8 h-8 bg-red-600 rounded-full flex items-center justify-center">
-                  <span className="text-white font-bold text-xs">SoT</span>
-                </div>
-                <h1 className="text-xl font-bold text-gray-900">Assessment Results</h1>
-              </div>
-              <Badge className="bg-red-600 text-white hover:bg-red-700">Student Portal</Badge>
-            </div>
-          </div>
-        </header>
+        {/* 🚀 使用 StudentPortalHeader */}
+        <StudentPortalHeader
+            applicationCount={applicationCount}
+            showBackButton={true}
+            backHref={`/student/job/${jobId}`}
+        />
 
         <main className="container mx-auto px-4 py-8">
           <div className="max-w-4xl mx-auto">
@@ -247,7 +241,7 @@ export default function AssessmentResultPage() {
                     { key: "experience_depth", label: "Experience Depth", icon: <TrendingUp className="w-4 h-4" /> },
                     { key: "education_match", label: "Education Match", icon: <BookOpen className="w-4 h-4" /> },
                     { key: "potential_fit", label: "Potential Fit", icon: <Award className="w-4 h-4" /> },
-                  ].map((item) => (
+                  ].map((item: { key: keyof typeof assessment.score, label: string, icon: JSX.Element }) => (
                       <div
                           key={item.key}
                           className="flex items-center justify-between p-3 rounded-lg border border-gray-100"
@@ -257,9 +251,9 @@ export default function AssessmentResultPage() {
                           <span className="font-medium text-gray-900">{item.label}</span>
                         </div>
                         <div className="flex items-center space-x-2">
-                      <span className={`font-bold ${getScoreColor(assessment.score[item.key])}`}>
-                        {assessment.score[item.key]}%
-                      </span>
+                          <span className={`font-bold ${getScoreColor(assessment.score[item.key])}`}>
+                            {assessment.score[item.key]}%
+                          </span>
                         </div>
                       </div>
                   ))}
