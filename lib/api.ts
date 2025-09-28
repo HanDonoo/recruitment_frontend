@@ -194,7 +194,7 @@ const transformFrontendJobToBackend = (frontendJob: Omit<Job, "id" | "applicants
 }
 
 // API endpoints
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "https://2387dcdbe886.ngrok-free.app"
+const API_BASE_URL = "https://2387dcdbe886.ngrok-free.app"
 
 export const api = {
   // Job endpoints
