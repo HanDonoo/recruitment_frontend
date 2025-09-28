@@ -1,24 +1,30 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import Link from "next/link"
 import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
-import { Search, Clock, Users, AlertCircle, FileText } from "lucide-react"
+import { Badge } from "@/components/ui/badge"
+import { Search, Clock, Users, AlertCircle, FileText, Star, Briefcase, Filter } from "lucide-react"
 import { JobCard } from "@/components/job-card"
 import { AssessmentModal } from "@/components/assessment-modal"
 import { api, Job } from "@/lib/api"
 import { StudentPortalHeader } from "@/components/student-portal-header"
 
+// Job view types
+type JobViewType = 'recommended' | 'all'
+
 export default function StudentPage() {
   const [jobs, setJobs] = useState<Job[]>([])
+  const [allJobs, setAllJobs] = useState<Job[]>([]) // Store all jobs separately
   const [searchTerm, setSearchTerm] = useState("")
   const [selectedJob, setSelectedJob] = useState<Job | null>(null)
   const [showAssessment, setShowAssessment] = useState(false)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [applicationCount, setApplicationCount] = useState(0)
+  const [jobViewType, setJobViewType] = useState<JobViewType>('recommended') // New state for view toggle
+  const [isLoadingAllJobs, setIsLoadingAllJobs] = useState(false) // Loading state for all jobs
 
   // TODO: Replace with dynamic user ID from auth/context
   const currentUserId = 1
@@ -30,13 +36,13 @@ export default function StudentPage() {
         setLoading(true)
         setError(null)
 
-        // 并行获取推荐工作和申请数据
+        // Parallel fetch recommended jobs and applications data
         const [jobsResponse, applicationsResponse] = await Promise.all([
           api.jobs.recommendForApplicant(currentUserId),
           api.applications.listByApplicant(currentUserId)
         ])
 
-        // 1. 处理工作数据
+        // 1. Handle job data
         if (jobsResponse.success && jobsResponse.data) {
           setJobs(jobsResponse.data)
         } else {
@@ -45,27 +51,30 @@ export default function StudentPage() {
 
           if (fallbackResponse.success && fallbackResponse.data) {
             setJobs(fallbackResponse.data)
+            setAllJobs(fallbackResponse.data) // Set all jobs as well
           } else {
             setError("Failed to load jobs. Please try again later.")
             return
           }
         }
 
-        // 2. 处理申请数据
+        // 2. Handle application data
         if (applicationsResponse.success && applicationsResponse.data) {
           setApplicationCount(applicationsResponse.data.length)
 
-          // 标记已申请的工作
+          // Mark applied jobs
           const appliedJobIds = applicationsResponse.data.map(app => app.job_id)
-          setJobs(prevJobs =>
-              prevJobs.map(job => ({
+          const markJobsAsApplied = (jobList: Job[]) =>
+              jobList.map(job => ({
                 ...job,
                 isApplied: appliedJobIds.includes(job.id)
               }))
-          )
+
+          setJobs(prevJobs => markJobsAsApplied(prevJobs))
+          setAllJobs(prevJobs => markJobsAsApplied(prevJobs))
         } else {
           console.warn("Failed to fetch applications:", applicationsResponse.error)
-          // 申请数据获取失败时，仍然使用localStorage作为备用
+          // Fall back to localStorage when application data fetch fails
           const localApplications = JSON.parse(localStorage.getItem("applications") || "[]")
           setApplicationCount(localApplications.length)
         }
@@ -80,6 +89,73 @@ export default function StudentPage() {
 
     fetchData()
   }, [currentUserId])
+
+  // Fetch all jobs when switching to "all" view
+  const fetchAllJobs = async () => {
+    if (allJobs.length > 0) {
+      // If we already have all jobs, just switch the view
+      setJobs(allJobs)
+      setJobViewType('all')
+      return
+    }
+
+    try {
+      setIsLoadingAllJobs(true)
+      const response = await api.jobs.getAll({ limit: 100 })
+
+      if (response.success && response.data) {
+        // Get current applications to mark applied jobs
+        const applicationsResponse = await api.applications.listByApplicant(currentUserId)
+        let appliedJobIds: number[] = []
+
+        if (applicationsResponse.success && applicationsResponse.data) {
+          appliedJobIds = applicationsResponse.data.map(app => app.job_id)
+        }
+
+        const jobsWithAppliedStatus = response.data.map(job => ({
+          ...job,
+          isApplied: appliedJobIds.includes(job.id)
+        }))
+
+        setAllJobs(jobsWithAppliedStatus)
+        setJobs(jobsWithAppliedStatus)
+        setJobViewType('all')
+      } else {
+        console.error("Failed to fetch all jobs:", response.error)
+      }
+    } catch (err) {
+      console.error("Error fetching all jobs:", err)
+    } finally {
+      setIsLoadingAllJobs(false)
+    }
+  }
+
+  // Handle job view type change
+  const handleViewTypeChange = async (viewType: JobViewType) => {
+    if (viewType === 'recommended') {
+      // Switch back to recommended jobs
+      const response = await api.jobs.recommendForApplicant(currentUserId)
+      if (response.success && response.data) {
+        // Apply the same application status logic
+        const applicationsResponse = await api.applications.listByApplicant(currentUserId)
+        let appliedJobIds: number[] = []
+
+        if (applicationsResponse.success && applicationsResponse.data) {
+          appliedJobIds = applicationsResponse.data.map(app => app.job_id)
+        }
+
+        const jobsWithAppliedStatus = response.data.map(job => ({
+          ...job,
+          isApplied: appliedJobIds.includes(job.id)
+        }))
+
+        setJobs(jobsWithAppliedStatus)
+      }
+      setJobViewType('recommended')
+    } else {
+      await fetchAllJobs()
+    }
+  }
 
   const filteredJobs = jobs.filter(
       (job) =>
@@ -97,6 +173,7 @@ export default function StudentPage() {
 
       if (response.success) {
         setJobs((prev) => prev.map((j) => (j.id === jobId ? { ...j, isApplied: true } : j)))
+        setAllJobs((prev) => prev.map((j) => (j.id === jobId ? { ...j, isApplied: true } : j)))
         setApplicationCount((prev) => prev + 1)
 
         const applicationData = {
@@ -148,11 +225,10 @@ export default function StudentPage() {
     window.location.reload()
   }
 
-  // ========================== 🚀 加载状态 (简化) ==========================
+  // Loading state
   if (loading) {
     return (
         <div className="min-h-screen bg-gray-50">
-          {/* 🚀 使用 StudentPortalHeader: 主页不显示返回按钮 */}
           <StudentPortalHeader applicationCount={applicationCount} showBackButton={false} />
 
           <div className="flex items-center justify-center min-h-[calc(100vh-80px)]">
@@ -165,11 +241,10 @@ export default function StudentPage() {
     )
   }
 
-  // ========================== 🚀 错误状态 (简化) ==========================
+  // Error state
   if (error) {
     return (
         <div className="min-h-screen bg-gray-50">
-          {/* 🚀 使用 StudentPortalHeader: 主页不显示返回按钮 */}
           <StudentPortalHeader applicationCount={applicationCount} showBackButton={false} />
 
           <div className="flex items-center justify-center min-h-[calc(100vh-80px)]">
@@ -186,10 +261,9 @@ export default function StudentPage() {
     )
   }
 
-  // ========================== 🚀 主内容 ==========================
+  // Main content
   return (
       <div className="min-h-screen bg-gray-50">
-        {/* 🚀 使用 StudentPortalHeader 组件 */}
         <StudentPortalHeader applicationCount={applicationCount} showBackButton={false} />
 
         <main className="container mx-auto px-4 py-8">
@@ -212,6 +286,55 @@ export default function StudentPage() {
             </div>
           </div>
 
+          {/* Job View Toggle Tabs */}
+          <div className="mb-6">
+            <div className="flex items-center space-x-1 bg-gray-100 p-1 rounded-lg w-fit">
+              <button
+                  onClick={() => handleViewTypeChange('recommended')}
+                  disabled={isLoadingAllJobs}
+                  className={`flex items-center px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 ${
+                      jobViewType === 'recommended'
+                          ? 'bg-white text-red-600 shadow-sm'
+                          : 'text-gray-600 hover:text-gray-900'
+                  }`}
+              >
+                <Star className="w-4 h-4 mr-2" />
+                Recommended
+                {jobViewType === 'recommended' && (
+                    <Badge variant="secondary" className="ml-2 bg-red-100 text-red-600 text-xs">
+                      {jobs.length}
+                    </Badge>
+                )}
+              </button>
+              <button
+                  onClick={() => handleViewTypeChange('all')}
+                  disabled={isLoadingAllJobs}
+                  className={`flex items-center px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 ${
+                      jobViewType === 'all'
+                          ? 'bg-white text-red-600 shadow-sm'
+                          : 'text-gray-600 hover:text-gray-900'
+                  } ${isLoadingAllJobs ? 'opacity-50 cursor-not-allowed' : ''}`}
+              >
+                <Briefcase className="w-4 h-4 mr-2" />
+                {isLoadingAllJobs ? (
+                    <>
+                      <div className="animate-spin rounded-full h-3 w-3 border-b border-gray-400 mr-2"></div>
+                      Loading...
+                    </>
+                ) : (
+                    <>
+                      All Jobs
+                      {jobViewType === 'all' && (
+                          <Badge variant="secondary" className="ml-2 bg-red-100 text-red-600 text-xs">
+                            {jobs.length}
+                          </Badge>
+                      )}
+                    </>
+                )}
+              </button>
+            </div>
+          </div>
+
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
             <Card className="bg-white border-gray-200">
               <CardContent className="p-4">
@@ -220,7 +343,9 @@ export default function StudentPage() {
                     <Users className="w-4 h-4 text-red-600" />
                   </div>
                   <div>
-                    <p className="text-sm text-gray-600">Active Roles</p>
+                    <p className="text-sm text-gray-600">
+                      {jobViewType === 'recommended' ? 'Recommended' : 'Available'} Roles
+                    </p>
                     <p className="text-xl font-bold text-gray-900">{jobs.length}</p>
                   </div>
                 </div>
@@ -259,7 +384,10 @@ export default function StudentPage() {
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <h3 className="text-xl font-semibold text-gray-900">
-                {searchTerm ? `Search Results (${filteredJobs.length})` : `Recommended Jobs (${filteredJobs.length})`}
+                {searchTerm
+                    ? `Search Results (${filteredJobs.length})`
+                    : `${jobViewType === 'recommended' ? 'Recommended' : 'All'} Jobs (${filteredJobs.length})`
+                }
               </h3>
               {searchTerm && (
                   <Button
@@ -277,17 +405,28 @@ export default function StudentPage() {
                 <div className="text-center py-12">
                   <Search className="h-12 w-12 text-gray-400 mx-auto mb-4" />
                   <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                    {searchTerm ? "No jobs match your search" : "No recommended jobs found"}
+                    {searchTerm ? "No jobs match your search" : `No ${jobViewType} jobs found`}
                   </h3>
                   <p className="text-gray-600 mb-4">
                     {searchTerm
                         ? "Try adjusting your search terms or browse all available positions."
-                        : "Check back later for new opportunities or update your profile preferences."}
+                        : jobViewType === 'recommended'
+                            ? "Check back later for new opportunities or view all jobs."
+                            : "Check back later for new opportunities."}
                   </p>
                   {searchTerm && (
                       <Button
                           variant="outline"
                           onClick={() => setSearchTerm("")}
+                      >
+                        {jobViewType === 'recommended' ? 'View Recommended Jobs' : 'View All Jobs'}
+                      </Button>
+                  )}
+                  {!searchTerm && jobViewType === 'recommended' && (
+                      <Button
+                          variant="outline"
+                          onClick={() => handleViewTypeChange('all')}
+                          disabled={isLoadingAllJobs}
                       >
                         View All Jobs
                       </Button>
