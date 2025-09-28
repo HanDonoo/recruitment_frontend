@@ -1,5 +1,5 @@
 {
-  "name": "my-v0-project",
+  "name": "recruitment_frontend",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -72,5 +72,9 @@
     "tailwindcss": "^4.1.9",
     "tw-animate-css": "1.3.3",
     "typescript": "^5"
+  },
+  "engines": {
+    "node": ">=20.0.0",
+    "pnpm": ">=9.0.0"
   }
 }
