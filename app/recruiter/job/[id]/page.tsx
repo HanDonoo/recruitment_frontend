@@ -6,28 +6,23 @@ import { useParams } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-// 移除 ArrowLeft，因为它现在在 Header 组件内部
 import { MapPin, Users, Building, Calendar, AlertCircle } from "lucide-react"
-import { AssessmentModal } from "@/components/assessment-modal"
 import { api, Job } from "@/lib/api"
-// 🚀 导入新的 Header 组件
-import { StudentPortalHeader } from "@/components/student-portal-header"
-
+// Import RecruiterPortalHeader component
+import { RecruiterPortalHeader } from "@/components/recruiter-portal-header"
 
 export default function JobDetailPage() {
   const params = useParams()
-  // 确保 jobId 是 number 类型
+  // Ensure jobId is number type
   const jobId = Number(params.id)
 
   const [job, setJob] = useState<Job | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [showAssessment, setShowAssessment] = useState(false)
-  const [hasAssessment, setHasAssessment] = useState(false)
   const [applicationCount, setApplicationCount] = useState(0)
 
-  // TODO: 从登录用户状态获取实际用户ID
-  const currentApplicantId = 1
+  // TODO: Get actual company ID from company state
+  const COMPANY_ID = 1
 
   useEffect(() => {
     async function fetchData() {
@@ -35,35 +30,26 @@ export default function JobDetailPage() {
       setError(null)
 
       try {
-        // 1. 并行获取 Job 详情、评估状态和应用计数
-        const [jobResponse, assessmentResponse, applicationsResponse] = await Promise.all([
-          api.jobs.getById(jobId),
-          api.assessment.checkAssessment(currentApplicantId, jobId),
-          api.applications.listByApplicant(currentApplicantId)
-        ])
+        // 1. Fetch job details
+        const jobResponse = await api.jobs.getById(jobId)
 
-        // 检查 Job 详情
         if (jobResponse.success && jobResponse.data) {
           setJob(jobResponse.data)
+
+          // 2. Fetch application count for this job
+          try {
+            const applicationsResponse = await api.applications.listByJobAndCompany(jobId, COMPANY_ID)
+            if (applicationsResponse.success && applicationsResponse.data) {
+              setApplicationCount(applicationsResponse.data.length)
+            } else {
+              setApplicationCount(0)
+            }
+          } catch (e) {
+            console.error("Failed to fetch application count:", e)
+            setApplicationCount(0)
+          }
         } else {
           throw new Error(jobResponse.error || "Failed to load job details.")
-        }
-
-        // 设置评估状态
-        if (assessmentResponse.success && assessmentResponse.data) {
-          setHasAssessment(assessmentResponse.data.hasAssessment)
-        } else {
-          setHasAssessment(false)
-          console.error("Failed to fetch assessment status:", assessmentResponse.error)
-        }
-
-        // 设置申请计数
-        if (applicationsResponse.success && applicationsResponse.data) {
-          setApplicationCount(applicationsResponse.data.length)
-        } else {
-          console.error("Failed to fetch application count:", applicationsResponse.error)
-          // 失败时默认为 0
-          setApplicationCount(0)
         }
 
       } catch (e) {
@@ -77,44 +63,40 @@ export default function JobDetailPage() {
     fetchData()
   }, [jobId])
 
-  const handleAssessmentComplete = (assessmentResult: any) => {
-    // 假设评估完成即代表已完成
-    setHasAssessment(true)
-    setShowAssessment(false)
-  }
-
-  // --- 加载状态 ---
+  // --- Loading state ---
   if (loading) {
     return (
-        <div className="min-h-screen bg-gray-50">
-          {/* 传递 applicationCount 给 Header，并确保显示 Back 按钮 */}
-          <StudentPortalHeader
-              applicationCount={applicationCount}
+        <div className="min-h-screen bg-background">
+          {/* Use RecruiterPortalHeader component with back button */}
+          <RecruiterPortalHeader
               showBackButton={true}
+              backHref="/recruiter"
+              pageTitle="Job Details"
           />
           <div className="flex items-center justify-center min-h-[calc(100vh-80px)]">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-600"></div>
-            <p className="text-gray-600 ml-4">Loading job details...</p>
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-sot-red"></div>
+            <p className="text-muted-foreground ml-4">Loading job details...</p>
           </div>
         </div>
     )
   }
 
-  // --- 错误状态 ---
+  // --- Error state ---
   if (error || !job) {
     return (
-        <div className="min-h-screen bg-gray-50">
-          <StudentPortalHeader
-              applicationCount={applicationCount}
+        <div className="min-h-screen bg-background">
+          <RecruiterPortalHeader
               showBackButton={true}
+              backHref="/recruiter"
+              pageTitle="Job Details"
           />
           <div className="flex items-center justify-center min-h-[calc(100vh-80px)]">
-            <div className="text-center max-w-md p-8 bg-white rounded-lg shadow-lg">
+            <div className="text-center max-w-md p-8 bg-card rounded-lg shadow-lg">
               <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">Job Not Found</h2>
-              <p className="text-gray-600 mb-4">{error || "The job you're looking for doesn't exist."}</p>
-              <Link href="/student">
-                <Button className="bg-red-600 hover:bg-red-700 text-white">Back to Jobs</Button>
+              <h2 className="text-2xl font-bold text-foreground mb-2">Job Not Found</h2>
+              <p className="text-muted-foreground mb-4">{error || "The job you're looking for doesn't exist."}</p>
+              <Link href="/recruiter">
+                <Button className="bg-sot-red hover:bg-sot-red/90 text-white">Back to Recruiter Portal</Button>
               </Link>
             </div>
           </div>
@@ -122,25 +104,25 @@ export default function JobDetailPage() {
     )
   }
 
-  // --- 正常显示 ---
+  // --- Normal display ---
   return (
-      <div className="min-h-screen bg-gray-50">
-        {/* 🚀 使用 StudentPortalHeader 组件 */}
-        <StudentPortalHeader
-            applicationCount={applicationCount}
-            // 确保 Back 按钮显示，默认返回 /student
+      <div className="min-h-screen bg-background">
+        {/* Use RecruiterPortalHeader component */}
+        <RecruiterPortalHeader
             showBackButton={true}
+            backHref="/recruiter"
+            pageTitle="Job Details"
         />
 
         <main className="container mx-auto px-4 py-8">
           <div className="max-w-4xl mx-auto">
             {/* Job Header */}
-            <Card className="bg-white border-gray-200 mb-6">
+            <Card className="bg-card border-border mb-6">
               <CardHeader>
                 <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
                   <div>
-                    <CardTitle className="text-2xl text-gray-900 mb-2">{job.title}</CardTitle>
-                    <div className="flex items-center space-x-4 text-gray-600 mb-4">
+                    <CardTitle className="text-2xl text-foreground mb-2">{job.title}</CardTitle>
+                    <div className="flex items-center space-x-4 text-muted-foreground mb-4">
                       <div className="flex items-center space-x-1">
                         <Building className="w-4 h-4" />
                         <span className="font-medium">{job.company}</span>
@@ -151,12 +133,10 @@ export default function JobDetailPage() {
                       </div>
                       <div className="flex items-center space-x-1">
                         <Calendar className="w-4 h-4" />
-                        {/* 假设 job.experience 是一个有效的字段 */}
                         <span>{job.experience}</span>
                       </div>
                     </div>
                     <div className="flex flex-wrap gap-2">
-                      {/* 假设 job.tags 是一个字符串数组 */}
                       {job.tags && Array.isArray(job.tags) && job.tags.map((tag) => (
                           <Badge key={tag} variant="secondary" className="text-xs">
                             {tag}
@@ -165,35 +145,69 @@ export default function JobDetailPage() {
                     </div>
                   </div>
                   <div className="text-right">
-                    <div className="text-2xl font-bold text-red-600 mb-2">{job.salary}</div>
+                    <div className="text-2xl font-bold text-sot-red mb-2">{job.salary}</div>
                   </div>
                 </div>
               </CardHeader>
             </Card>
 
-            {/* Job Description */}
-            <Card className="bg-white border-gray-200">
+            {/* Application Stats Card */}
+            <Card className="bg-card border-border mb-6">
               <CardHeader>
-                <CardTitle className="text-xl text-gray-900">Job Description</CardTitle>
+                <CardTitle className="text-xl text-foreground">Application Statistics</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-10 h-10 bg-sot-red/10 rounded-lg flex items-center justify-center">
+                      <Users className="w-5 h-5 text-sot-red" />
+                    </div>
+                    <div>
+                      <p className="text-sm text-muted-foreground">Total Applications</p>
+                      <p className="text-2xl font-bold text-foreground">{applicationCount}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center space-x-3">
+                    <div className="w-10 h-10 bg-blue-500/10 rounded-lg flex items-center justify-center">
+                      <Calendar className="w-5 h-5 text-blue-600" />
+                    </div>
+                    <div>
+                      <p className="text-sm text-muted-foreground">Posted</p>
+                      <p className="text-lg font-semibold text-foreground">
+                        {job.createdAt ? new Date(job.createdAt).toLocaleDateString() : 'N/A'}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center space-x-3">
+                    <div className="w-10 h-10 bg-green-500/10 rounded-lg flex items-center justify-center">
+                      <Building className="w-5 h-5 text-green-600" />
+                    </div>
+                    <div>
+                      <p className="text-sm text-muted-foreground">Status</p>
+                      <Badge variant="outline" className="text-green-600 border-green-600">
+                        Active
+                      </Badge>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Job Description */}
+            <Card className="bg-card border-border">
+              <CardHeader>
+                <CardTitle className="text-xl text-foreground">Job Description</CardTitle>
               </CardHeader>
               <CardContent>
                 <div
-                    className="prose prose-gray max-w-none"
+                    className="prose prose-gray max-w-none dark:prose-invert"
                     dangerouslySetInnerHTML={{ __html: job.description }}
                 />
               </CardContent>
             </Card>
+
           </div>
         </main>
-
-        {/* Assessment Modal */}
-        {showAssessment && (
-            <AssessmentModal
-                job={job}
-                onClose={() => setShowAssessment(false)}
-                onComplete={handleAssessmentComplete}
-            />
-        )}
       </div>
   )
 }

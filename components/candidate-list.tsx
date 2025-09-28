@@ -19,8 +19,8 @@ interface Candidate {
   id: number
   name: string
   title: string
-  experience: string
-  education: string
+  university: string
+  major: string
   skills: string[]
   score?: number
   status: "pending" | "reviewed" | "interviewed"
@@ -35,6 +35,8 @@ interface CandidateListProps {
 
 export function CandidateList({ candidates }: CandidateListProps) {
   const router = useRouter();
+
+  console.log("123123", candidates)
 
   const isMobile = useIsMobile();
   const [messageDialogOpen, setMessageDialogOpen] = useState(false)
@@ -215,15 +217,15 @@ export function CandidateList({ candidates }: CandidateListProps) {
                     <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
                       <Briefcase className="w-4 h-4 text-gray-500 flex-shrink-0" />
                       <div className="min-w-0">
-                        <div className="text-xs text-gray-500 uppercase tracking-wide">EXPERIENCE</div>
-                        <div className="text-sm font-medium text-gray-900 truncate">{candidate.experience}</div>
+                        <div className="text-xs text-gray-500 uppercase tracking-wide">EDUCATION</div>
+                        <div className="text-sm font-medium text-gray-900 truncate">{candidate.major}</div>
                       </div>
                     </div>
                     <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
                       <GraduationCap className="w-4 h-4 text-gray-500 flex-shrink-0" />
                       <div className="min-w-0">
-                        <div className="text-xs text-gray-500 uppercase tracking-wide">EDUCATION</div>
-                        <div className="text-sm font-medium text-gray-900 truncate">{candidate.education}</div>
+                        <div className="text-xs text-gray-500 uppercase tracking-wide">UNIVERSITY</div>
+                        <div className="text-sm font-medium text-gray-900 truncate">{candidate.university}</div>
                       </div>
                     </div>
                   </div>
@@ -402,21 +404,21 @@ export function CandidateList({ candidates }: CandidateListProps) {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-4">
                       <div>
-                        <Label className="text-sm font-medium text-gray-500 uppercase tracking-wide">Experience</Label>
-                        <p className="text-gray-900 mt-1">{selectedCandidate.experience}</p>
+                        <Label className="text-sm font-medium text-gray-500 uppercase tracking-wide">EDUCATION</Label>
+                        <p className="text-gray-900 mt-1">{selectedCandidate.major}</p>
                       </div>
                       <div>
-                        <Label className="text-sm font-medium text-gray-500 uppercase tracking-wide">Education</Label>
-                        <p className="text-gray-900 mt-1">{selectedCandidate.education}</p>
+                        <Label className="text-sm font-medium text-gray-500 uppercase tracking-wide">UNIVERSITY</Label>
+                        <p className="text-gray-900 mt-1">{selectedCandidate.university}</p>
                       </div>
                     </div>
                     <div className="space-y-4">
                       <div>
-                        <Label className="text-sm font-medium text-gray-500 uppercase tracking-wide">Applied</Label>
-                        <p className="text-gray-900 mt-1">{selectedCandidate.appliedAt}</p>
+                        <Label className="text-sm font-medium text-gray-500 uppercase tracking-wide">APPLIED</Label>
+                        <p className="text-gray-900 mt-1">{new Date(selectedCandidate.appliedAt).toLocaleDateString()}</p>
                       </div>
                       <div>
-                        <Label className="text-sm font-medium text-gray-500 uppercase tracking-wide">Match Score</Label>
+                        <Label className="text-sm font-medium text-gray-500 uppercase tracking-wide">MATCH SCORE</Label>
                         <p className="text-gray-900 font-semibold mt-1">{selectedCandidate.score ?? 0}%</p>
                       </div>
                     </div>

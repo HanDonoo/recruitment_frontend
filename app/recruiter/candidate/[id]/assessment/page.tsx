@@ -2,12 +2,13 @@
 
 import { useState, useEffect } from "react"
 import Link from "next/link"
-import { useParams } from "next/navigation"
+import { useParams, useRouter } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { ArrowLeft, Star, TrendingUp, BookOpen, Target, Award, User, Loader2 } from "lucide-react"
+import { Star, TrendingUp, BookOpen, Target, Award, User, Loader2 } from "lucide-react"
 import { AssessmentRadarChart } from "@/components/radar-chart"
+import { RecruiterPortalHeader } from "@/components/recruiter-portal-header"
 import { api } from "@/lib/api"
 
 interface Candidate {
@@ -23,6 +24,7 @@ interface RecruiterAssessmentPageProps {
 
 export default function RecruiterAssessmentPage({ searchParams }: RecruiterAssessmentPageProps) {
     const params = useParams()
+    const router = useRouter()
     const applicantId = Number.parseInt(params.id as string)
     const jobId = searchParams.jobId ? Number.parseInt(searchParams.jobId) : undefined
 
@@ -78,66 +80,55 @@ export default function RecruiterAssessmentPage({ searchParams }: RecruiterAsses
         fetchData()
     }, [applicantId, jobId])
 
+    // Handle back navigation
+    const handleBackNavigation = () => {
+        router.back()
+    }
 
     if (isLoading) {
         return (
-            <div className="min-h-screen bg-gray-50">
-                <header className="border-b border-gray-200 bg-white sticky top-0 z-40">
-                    <div className="container mx-auto px-4 py-4">
-                        <div className="flex items-center justify-between">
-                            <div className="flex items-center space-x-3">
-                                <Link href="/recruiter">
-                                    <Button variant="ghost" size="sm" className="text-gray-600 hover:text-gray-900">
-                                        <ArrowLeft className="w-4 h-4 mr-2" />
-                                        Back
-                                    </Button>
-                                </Link>
-                                <div className="w-8 h-8 bg-red-600 rounded-full flex items-center justify-center">
-                                    <span className="text-white font-bold text-xs">SoT</span>
-                                </div>
-                                <h1 className="text-xl font-bold text-gray-900">Assessment Results</h1>
-                            </div>
-                            <Badge className="bg-red-600 text-white hover:bg-red-700">Recruiter Portal</Badge>
-                        </div>
-                    </div>
-                </header>
+            <div className="min-h-screen bg-background">
+                <RecruiterPortalHeader
+                    showBackButton={true}
+                    pageTitle="Assessment Results"
+                />
 
                 <main className="container mx-auto px-4 py-8">
                     <div className="max-w-4xl mx-auto">
-                        <Card className="bg-white border-gray-200 mb-6">
+                        <Card className="bg-card border-border mb-6">
                             <CardContent className="pt-6">
                                 <div className="flex items-center space-x-4 mb-4">
-                                    <div className="w-12 h-12 bg-gray-200 rounded-full animate-pulse"></div>
+                                    <div className="w-12 h-12 bg-muted rounded-full animate-pulse"></div>
                                     <div className="space-y-2">
-                                        <div className="w-48 h-6 bg-gray-200 rounded animate-pulse"></div>
-                                        <div className="w-64 h-4 bg-gray-200 rounded animate-pulse"></div>
+                                        <div className="w-48 h-6 bg-muted rounded animate-pulse"></div>
+                                        <div className="w-64 h-4 bg-muted rounded animate-pulse"></div>
                                     </div>
                                 </div>
-                                <div className="w-full h-4 bg-gray-200 rounded animate-pulse"></div>
+                                <div className="w-full h-4 bg-muted rounded animate-pulse"></div>
                             </CardContent>
                         </Card>
 
                         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-                            <Card className="bg-white border-gray-200">
+                            <Card className="bg-card border-border">
                                 <CardHeader>
-                                    <div className="w-32 h-6 bg-gray-200 rounded animate-pulse"></div>
+                                    <div className="w-32 h-6 bg-muted rounded animate-pulse"></div>
                                 </CardHeader>
                                 <CardContent>
-                                    <div className="h-80 bg-gray-100 rounded-lg animate-pulse flex items-center justify-center">
-                                        <Loader2 className="w-8 h-8 text-gray-400 animate-spin" />
+                                    <div className="h-80 bg-muted/50 rounded-lg animate-pulse flex items-center justify-center">
+                                        <Loader2 className="w-8 h-8 text-muted-foreground animate-spin" />
                                     </div>
                                 </CardContent>
                             </Card>
 
-                            <Card className="bg-white border-gray-200">
+                            <Card className="bg-card border-border">
                                 <CardHeader>
-                                    <div className="w-32 h-6 bg-gray-200 rounded animate-pulse"></div>
+                                    <div className="w-32 h-6 bg-muted rounded animate-pulse"></div>
                                 </CardHeader>
                                 <CardContent className="space-y-4">
                                     {[1, 2, 3, 4].map((i) => (
-                                        <div key={i} className="flex items-center justify-between p-3 rounded-lg border border-gray-100">
-                                            <div className="w-24 h-4 bg-gray-200 rounded animate-pulse"></div>
-                                            <div className="w-12 h-4 bg-gray-200 rounded animate-pulse"></div>
+                                        <div key={i} className="flex items-center justify-between p-3 rounded-lg border border-border">
+                                            <div className="w-24 h-4 bg-muted rounded animate-pulse"></div>
+                                            <div className="w-12 h-4 bg-muted rounded animate-pulse"></div>
                                         </div>
                                     ))}
                                 </CardContent>
@@ -151,39 +142,27 @@ export default function RecruiterAssessmentPage({ searchParams }: RecruiterAsses
 
     if (error || !assessment || !jobId) {
         return (
-            <div className="min-h-screen bg-gray-50">
-                <header className="border-b border-gray-200 bg-white sticky top-0 z-40">
-                    <div className="container mx-auto px-4 py-4">
-                        <div className="flex items-center justify-between">
-                            <div className="flex items-center space-x-3">
-                                <Link href="/recruiter">
-                                    <Button variant="ghost" size="sm" className="text-gray-600 hover:text-gray-900">
-                                        <ArrowLeft className="w-4 h-4 mr-2" />
-                                        Back to Dashboard
-                                    </Button>
-                                </Link>
-                                <div className="w-8 h-8 bg-red-600 rounded-full flex items-center justify-center">
-                                    <span className="text-white font-bold text-xs">SoT</span>
-                                </div>
-                                <h1 className="text-xl font-bold text-gray-900">Assessment Results</h1>
-                            </div>
-                            <Badge className="bg-red-600 text-white hover:bg-red-700">Recruiter Portal</Badge>
-                        </div>
-                    </div>
-                </header>
+            <div className="min-h-screen bg-background">
+                <RecruiterPortalHeader
+                    showBackButton={true}
+                    pageTitle="Assessment Results"
+                />
 
                 <div className="flex items-center justify-center min-h-[calc(100vh-80px)]">
                     <div className="text-center max-w-md mx-auto px-4">
-                        <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                            <Target className="w-8 h-8 text-gray-400" />
+                        <div className="w-16 h-16 bg-muted/50 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <Target className="w-8 h-8 text-muted-foreground" />
                         </div>
-                        <h2 className="text-2xl font-bold text-gray-900 mb-2">Assessment Not Found</h2>
-                        <p className="text-gray-600 mb-6">
+                        <h2 className="text-2xl font-bold text-foreground mb-2">Assessment Not Found</h2>
+                        <p className="text-muted-foreground mb-6">
                             {error || "The assessment data for this candidate is not available."}
                         </p>
-                        <Link href="/recruiter">
-                            <Button className="bg-red-600 hover:bg-red-700 text-white">Back to Dashboard</Button>
-                        </Link>
+                        <Button
+                            onClick={handleBackNavigation}
+                            className="bg-sot-red hover:bg-sot-red/90 text-white"
+                        >
+                            Go Back
+                        </Button>
                     </div>
                 </div>
             </div>
@@ -205,40 +184,24 @@ export default function RecruiterAssessmentPage({ searchParams }: RecruiterAsses
         ]
     }
 
-
     return (
-        <div className="min-h-screen bg-gray-50">
-            <header className="border-b border-gray-200 bg-white sticky top-0 z-40">
-                <div className="container mx-auto px-4 py-4">
-                    <div className="flex items-center justify-between">
-                        <div className="flex items-center space-x-3">
-                            <Link href="/recruiter">
-                                <Button variant="ghost" size="sm" className="text-gray-600 hover:text-gray-900">
-                                    <ArrowLeft className="w-4 h-4 mr-2" />
-                                    Back to Dashboard
-                                </Button>
-                            </Link>
-                            <div className="w-8 h-8 bg-red-600 rounded-full flex items-center justify-center">
-                                <span className="text-white font-bold text-xs">SoT</span>
-                            </div>
-                            <h1 className="text-xl font-bold text-gray-900">Assessment Results</h1>
-                        </div>
-                        <Badge className="bg-red-600 text-white hover:bg-red-700">Recruiter Portal</Badge>
-                    </div>
-                </div>
-            </header>
+        <div className="min-h-screen bg-background">
+            <RecruiterPortalHeader
+                showBackButton={true}
+                pageTitle="Assessment Results"
+            />
 
             <main className="container mx-auto px-4 py-8">
                 <div className="max-w-4xl mx-auto">
-                    <Card className="bg-white border-gray-200 mb-6">
+                    <Card className="bg-card border-border mb-6">
                         <CardHeader>
                             <div className="flex items-center space-x-4">
-                                <div className="w-12 h-12 bg-red-50 rounded-full flex items-center justify-center">
-                                    <User className="w-6 h-6 text-red-600" />
+                                <div className="w-12 h-12 bg-sot-red/10 rounded-full flex items-center justify-center">
+                                    <User className="w-6 h-6 text-sot-red" />
                                 </div>
                                 <div>
-                                    <CardTitle className="text-2xl text-gray-900">{applicantName}</CardTitle>
-                                    <p className="text-gray-600">
+                                    <CardTitle className="text-2xl text-foreground">{applicantName}</CardTitle>
+                                    <p className="text-muted-foreground">
                                         Applied for {jobTitle}
                                     </p>
                                 </div>
@@ -249,19 +212,19 @@ export default function RecruiterAssessmentPage({ searchParams }: RecruiterAsses
                                 <div>
                                     <div className="flex items-center space-x-2 mb-2">
                                         <Star className="w-6 h-6 text-yellow-500" />
-                                        <span className="text-3xl font-bold text-gray-900">{assessment.score.overall}%</span>
-                                        <span className="text-lg text-gray-600">Overall Match</span>
+                                        <span className="text-3xl font-bold text-foreground">{assessment.score.overall}%</span>
+                                        <span className="text-lg text-muted-foreground">Overall Match</span>
                                     </div>
-                                    <p className="text-gray-600">{assessment.summary}</p>
+                                    <p className="text-muted-foreground">{assessment.summary}</p>
                                 </div>
                             </div>
                         </CardContent>
                     </Card>
 
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-                        <Card className="bg-white border-gray-200">
+                        <Card className="bg-card border-border">
                             <CardHeader>
-                                <CardTitle className="text-xl text-gray-900">Score Breakdown</CardTitle>
+                                <CardTitle className="text-xl text-foreground">Score Breakdown</CardTitle>
                             </CardHeader>
                             <CardContent>
                                 <div className="h-80">
@@ -270,19 +233,19 @@ export default function RecruiterAssessmentPage({ searchParams }: RecruiterAsses
                             </CardContent>
                         </Card>
 
-                        <Card className="bg-white border-gray-200">
+                        <Card className="bg-card border-border">
                             <CardHeader>
-                                <CardTitle className="text-xl text-gray-900">Detailed Scores</CardTitle>
+                                <CardTitle className="text-xl text-foreground">Detailed Scores</CardTitle>
                             </CardHeader>
                             <CardContent className="space-y-4">
                                 {getScoreKeys().map((item) => (
                                     <div
                                         key={item.key}
-                                        className="flex items-center justify-between p-3 rounded-lg border border-gray-100"
+                                        className="flex items-center justify-between p-3 rounded-lg border border-border"
                                     >
                                         <div className="flex items-center space-x-2">
                                             <div className={`p-1 rounded ${getScoreColor(assessment.score[item.key])}`}>{item.icon}</div>
-                                            <span className="font-medium text-gray-900">{item.label}</span>
+                                            <span className="font-medium text-foreground">{item.label}</span>
                                         </div>
                                         <div className="flex items-center space-x-2">
                                             <span className={`font-bold ${getScoreColor(assessment.score[item.key])}`}>
@@ -295,38 +258,56 @@ export default function RecruiterAssessmentPage({ searchParams }: RecruiterAsses
                         </Card>
                     </div>
 
-                    <Card className="bg-white border-gray-200 mb-6">
+                    <Card className="bg-card border-border mb-6">
                         <CardHeader>
-                            <CardTitle className="text-xl text-gray-900">Candidate Strengths</CardTitle>
+                            <CardTitle className="text-xl text-foreground">Candidate Strengths</CardTitle>
                         </CardHeader>
                         <CardContent>
                             <ul className="space-y-3">
                                 {assessment.assessment_highlights.map((highlight: string, index: number) => (
                                     <li key={index} className="flex items-start space-x-3">
                                         <div className="w-2 h-2 bg-green-500 rounded-full mt-2 flex-shrink-0"></div>
-                                        <p className="text-gray-700">{highlight}</p>
+                                        <p className="text-muted-foreground">{highlight}</p>
                                     </li>
                                 ))}
                             </ul>
                         </CardContent>
                     </Card>
 
-                    <Card className="bg-white border-gray-200 mb-6">
+                    <Card className="bg-card border-border mb-6">
                         <CardHeader>
-                            <CardTitle className="text-xl text-gray-900">Development Recommendations</CardTitle>
+                            <CardTitle className="text-xl text-foreground">Development Recommendations</CardTitle>
                         </CardHeader>
                         <CardContent>
                             <ul className="space-y-3">
                                 {assessment.recommendations_for_candidate.map((recommendation: string, index: number) => (
                                     <li key={index} className="flex items-start space-x-3">
                                         <div className="w-2 h-2 bg-blue-500 rounded-full mt-2 flex-shrink-0"></div>
-                                        <p className="text-gray-700">{recommendation}</p>
+                                        <p className="text-muted-foreground">{recommendation}</p>
                                     </li>
                                 ))}
                             </ul>
                         </CardContent>
                     </Card>
 
+                    {/* Action Buttons */}
+                    <div className="flex justify-between items-center mt-8">
+                        <Button
+                            variant="outline"
+                            onClick={handleBackNavigation}
+                            className="border-sot-red text-sot-red hover:bg-sot-red hover:text-white"
+                        >
+                            Back to Previous Page
+                        </Button>
+                        <div className="space-x-4">
+                            <Button variant="outline">
+                                Export Report
+                            </Button>
+                            <Button className="bg-sot-red hover:bg-sot-red/90 text-white">
+                                Contact Candidate
+                            </Button>
+                        </div>
+                    </div>
                 </div>
             </main>
         </div>

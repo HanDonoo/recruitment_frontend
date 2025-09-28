@@ -13,6 +13,7 @@ export interface Job {
   applicants: number
   matchScore?: number
   feedback?: string
+  createdAt: string
 }
 
 export interface Candidate {
@@ -133,7 +134,8 @@ const transformBackendJobToFrontend = (backendJob: BackendJob): Job => {
     description: backendJob.description,
     applicants: 0,
     matchScore: backendJob.matchScore,
-    feedback: undefined
+    feedback: undefined,
+    createdAt: backendJob.created_at
   }
 }
 

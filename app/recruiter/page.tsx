@@ -5,12 +5,12 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
-import { Search, Users, Eye, Star, TrendingUp, Award, ArrowLeft, Loader2 } from "lucide-react"
+import { Search, Users, Eye, Star, Award, ArrowLeft, Loader2 } from "lucide-react"
 import { JobCard } from "@/components/job-card"
 import { CandidateList } from "@/components/candidate-list"
+import { RecruiterPortalHeader } from "@/components/recruiter-portal-header" // 引入 header 组件
 import { api, Job, Candidate, ApplicationOut } from "@/lib/api"
 
-// 🚀 修正点 1: 将 overallScore 属性更名为 score，以匹配 CandidateList 组件
 interface CandidateWithApplication extends Candidate {
   status?: string;
   appliedAt?: string;
@@ -56,7 +56,6 @@ export default function RecruiterPage() {
 
     fetchJobs()
   }, [])
-
 
   const fetchCandidatesForJob = useCallback(async (jobId: number) => {
     setIsCandidatesLoading(true)
@@ -129,7 +128,6 @@ export default function RecruiterPage() {
     }
   }, [])
 
-
   const handleViewCandidates = (job: Job) => {
     setSelectedJob(job)
     fetchCandidatesForJob(job.id)
@@ -153,16 +151,11 @@ export default function RecruiterPage() {
       c.skills.some(skill => skill.toLowerCase().includes(searchTerm.toLowerCase()))
   )
 
-  // 修正点 4: 传递给 CandidateList 的数组是 CandidateWithApplication[]，虽然强制转换，但数据结构现在一致
   const displayCandidates: CandidateWithApplication[] = selectedJob
       ? showTopCandidates
           ? getTopCandidates()
           : filteredCandidates
       : []
-  // console.log("Display Candidates Data:", displayCandidates)
-  // // 并且打印它的类型/结构，方便调试
-  // console.log("Is Display Candidates an Array?", Array.isArray(displayCandidates))
-  // console.log("First Candidate (if exists):", displayCandidates[0])
 
   const totalApplications = "API Req"
   const averageScore = "API Req"
@@ -187,28 +180,16 @@ export default function RecruiterPage() {
     )
   }
 
-
   return (
       <div className="min-h-screen bg-background">
-        {/* Header (略) */}
-        <header className="border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-40">
-          <div className="container mx-auto px-4 py-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-2">
-                <div className="w-8 h-8 bg-sot-red rounded-lg flex items-center justify-center">
-                  <TrendingUp className="w-5 h-5 text-white" />
-                </div>
-                <h1 className="text-xl font-bold text-foreground">Summer of Tech</h1>
-              </div>
-              <Badge variant="secondary" className="text-xs bg-sot-red text-white">
-                Recruiter Portal
-              </Badge>
-            </div>
-          </div>
-        </header>
+        {/* 使用 RecruiterPortalHeader 组件 */}
+        <RecruiterPortalHeader
+            showBackButton={!!selectedJob}
+            pageTitle={selectedJob ? "Job Candidates" : "Recruiter Portal"}
+        />
 
         <main className="container mx-auto px-4 py-8">
-          {/* Welcome Section (略) */}
+          {/* Welcome Section */}
           <div className="mb-8">
             <h2 className="text-3xl font-bold text-foreground mb-2 text-balance">Smart Recruitment Platform</h2>
             <p className="text-muted-foreground text-lg">
@@ -216,7 +197,7 @@ export default function RecruiterPage() {
             </p>
           </div>
 
-          {/* Stats Cards (略) */}
+          {/* Stats Cards */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
             <Card className="bg-card border-border">
               <CardContent className="p-4">
@@ -276,11 +257,10 @@ export default function RecruiterPage() {
           </div>
 
           {!selectedJob ? (
-              // Job List View (略)
+              // Job List View
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <h3 className="text-xl font-semibold text-foreground">Posted Roles ({jobs.length})</h3>
-                  {/*<Button className="bg-sot-red hover:bg-sot-red-dark text-white">Post New Role</Button>*/}
                 </div>
 
                 <div className="space-y-4">
@@ -300,7 +280,7 @@ export default function RecruiterPage() {
                 </div>
               </div>
           ) : (
-              // Candidates View for Selected Job (略)
+              // Candidates View for Selected Job
               <div className="space-y-4">
                 <div className="flex items-center space-x-4 mb-6">
                   <Button
@@ -339,7 +319,6 @@ export default function RecruiterPage() {
                                     ? "bg-sot-red hover:bg-sot-red-dark text-white"
                                     : "border-sot-red text-sot-red hover:bg-sot-red hover:text-white"
                               }
-                              // 修正点 5: 禁用 Top 5 按钮时检查 score 属性
                               disabled={displayCandidates.length === 0 || candidates.every(c => c.score === undefined || c.score === null)}
                           >
                             <Award className="w-4 h-4 mr-2" />
@@ -370,7 +349,6 @@ export default function RecruiterPage() {
                       </div>
 
                       {displayCandidates.length > 0 ? (
-                          // 修正点 6: 类型转换是必要的，但现在数据结构是匹配的
                           <CandidateList candidates={displayCandidates as any} />
                       ) : (
                           <p className="text-center text-muted-foreground py-12">
