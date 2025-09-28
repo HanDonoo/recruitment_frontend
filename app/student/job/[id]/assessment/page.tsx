@@ -9,16 +9,16 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Star, TrendingUp, BookOpen, Target, Award, Loader2 } from "lucide-react"
 import { AssessmentRadarChart } from "@/components/radar-chart"
-import { StudentPortalHeader } from "@/components/student-portal-header"
+// 🚀 核心修改：导入通用的 Header 组件
+import { Header } from "@/components/header"
 
 export default function AssessmentResultPage() {
   const params = useParams()
   const jobId = Number.parseInt(params.id as string)
 
   const [assessment, setAssessment] = useState<any>(null)
-  // 移除 jobTitle 状态，因为它在页面中没有被使用
   const [isLoading, setIsLoading] = useState(true)
-  // 🚀 新增状态：用于 Header
+  // 用于 Header
   const [applicationCount, setApplicationCount] = useState(0)
 
   // TODO: 从登录用户状态获取实际用户ID
@@ -64,7 +64,9 @@ export default function AssessmentResultPage() {
   if (isLoading) {
     return (
         <div className="min-h-screen bg-gray-50">
-          <StudentPortalHeader
+          {/* 🚀 核心修改：使用通用 Header */}
+          <Header
+              variant="student"
               applicationCount={applicationCount}
               showBackButton={true}
               backHref={`/student/job/${jobId}`}
@@ -140,12 +142,13 @@ export default function AssessmentResultPage() {
     )
   }
 
-  // ========================== 🚀 无数据状态 (简化并使用 Header) ==========================
+  // ========================== 🚀 无数据状态 ==========================
   if (!assessment) {
     return (
         <div className="min-h-screen bg-gray-50">
-          {/* 🚀 使用 StudentPortalHeader */}
-          <StudentPortalHeader
+          {/* 🚀 核心修改：使用通用 Header */}
+          <Header
+              variant="student"
               applicationCount={applicationCount}
               showBackButton={true}
               backHref={`/student/job/${jobId}`}
@@ -188,8 +191,9 @@ export default function AssessmentResultPage() {
   // @ts-ignore
   return (
       <div className="min-h-screen bg-gray-50">
-        {/* 🚀 使用 StudentPortalHeader */}
-        <StudentPortalHeader
+        {/* 🚀 核心修改：使用通用 Header */}
+        <Header
+            variant="student"
             applicationCount={applicationCount}
             showBackButton={true}
             backHref={`/student/job/${jobId}`}

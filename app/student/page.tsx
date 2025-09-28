@@ -5,11 +5,12 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Search, Clock, Users, AlertCircle, FileText, Star, Briefcase, Filter } from "lucide-react"
+import { Search, Clock, Users, AlertCircle, FileText, Star, Briefcase } from "lucide-react"
 import { JobCard } from "@/components/job-card"
 import { AssessmentModal } from "@/components/assessment-modal"
 import { api, Job } from "@/lib/api"
-import { StudentPortalHeader } from "@/components/student-portal-header"
+// 🚀 核心修改：引入通用的 Header 组件
+import { Header } from "@/components/header"
 
 // Job view types
 type JobViewType = 'recommended' | 'all'
@@ -229,7 +230,8 @@ export default function StudentPage() {
   if (loading) {
     return (
         <div className="min-h-screen bg-gray-50">
-          <StudentPortalHeader applicationCount={applicationCount} showBackButton={false} />
+          {/* 🚀 核心修改：使用通用 Header */}
+          <Header variant="student" applicationCount={applicationCount} showBackButton={false} />
 
           <div className="flex items-center justify-center min-h-[calc(100vh-80px)]">
             <div className="text-center">
@@ -245,7 +247,8 @@ export default function StudentPage() {
   if (error) {
     return (
         <div className="min-h-screen bg-gray-50">
-          <StudentPortalHeader applicationCount={applicationCount} showBackButton={false} />
+          {/* 🚀 核心修改：使用通用 Header */}
+          <Header variant="student" applicationCount={applicationCount} showBackButton={false} />
 
           <div className="flex items-center justify-center min-h-[calc(100vh-80px)]">
             <div className="text-center max-w-md">
@@ -264,7 +267,8 @@ export default function StudentPage() {
   // Main content
   return (
       <div className="min-h-screen bg-gray-50">
-        <StudentPortalHeader applicationCount={applicationCount} showBackButton={false} />
+        {/* 🚀 核心修改：使用通用 Header */}
+        <Header variant="student" applicationCount={applicationCount} showBackButton={false} />
 
         <main className="container mx-auto px-4 py-8">
           <div className="mb-8">

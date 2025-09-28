@@ -8,7 +8,8 @@ import { Input } from "@/components/ui/input"
 import { Search, Users, Eye, Star, Award, ArrowLeft, Loader2 } from "lucide-react"
 import { JobCard } from "@/components/job-card"
 import { CandidateList } from "@/components/candidate-list"
-import { RecruiterPortalHeader } from "@/components/recruiter-portal-header" // 引入 header 组件
+// 🚀 核心修改：引入通用的 Header 组件
+import { Header } from "@/components/header"
 import { api, Job, Candidate, ApplicationOut } from "@/lib/api"
 
 interface CandidateWithApplication extends Candidate {
@@ -21,11 +22,11 @@ interface CandidateWithApplication extends Candidate {
 
 export default function RecruiterPage() {
   const [jobs, setJobs] = useState<Job[]>([])
-  const [isLoading, setIsLoading] = useState(true) // Job 列表加载状态
+  const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  const [candidates, setCandidates] = useState<CandidateWithApplication[]>([]) // 🚀 候选人列表状态
-  const [isCandidatesLoading, setIsCandidatesLoading] = useState(false) // 🚀 候选人加载状态
+  const [candidates, setCandidates] = useState<CandidateWithApplication[]>([])
+  const [isCandidatesLoading, setIsCandidatesLoading] = useState(false)
 
   const [selectedJob, setSelectedJob] = useState<Job | null>(null)
   const [searchTerm, setSearchTerm] = useState("")
@@ -103,7 +104,7 @@ export default function RecruiterPage() {
         const assessmentResult = assessmentResults[index]
         const application = applicationOuts.find(app => app.applicant_id === candidate.id)
 
-        let scoreValue: number | undefined = undefined; // 🚀 使用临时变量
+        let scoreValue: number | undefined = undefined;
         if (assessmentResult.success && assessmentResult.data) {
           scoreValue = assessmentResult.data.score?.overall;
         }
@@ -157,6 +158,7 @@ export default function RecruiterPage() {
           : filteredCandidates
       : []
 
+  // 统计数据占位符
   const totalApplications = "API Req"
   const averageScore = "API Req"
   const jobsWithCandidates = "API Req"
@@ -182,10 +184,11 @@ export default function RecruiterPage() {
 
   return (
       <div className="min-h-screen bg-background">
-        {/* 使用 RecruiterPortalHeader 组件 */}
-        <RecruiterPortalHeader
-            showBackButton={!!selectedJob}
-            pageTitle={selectedJob ? "Job Candidates" : "Recruiter Portal"}
+        {/* 🚀 核心修改：使用通用的 Header 组件，设置 variant="recruiter" */}
+        <Header
+            variant="recruiter"
+            showBackButton={!!selectedJob} // 在选中 Job 时显示 Back 按钮
+            backHref="/recruiter" // 返回 Recruiter Portal 根目录
         />
 
         <main className="container mx-auto px-4 py-8">

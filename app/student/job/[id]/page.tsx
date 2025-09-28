@@ -6,12 +6,11 @@ import { useParams } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-// 移除 ArrowLeft，因为它现在在 Header 组件内部
 import { MapPin, Users, Building, Calendar, AlertCircle } from "lucide-react"
 import { AssessmentModal } from "@/components/assessment-modal"
 import { api, Job } from "@/lib/api"
-// 🚀 导入新的 Header 组件
-import { StudentPortalHeader } from "@/components/student-portal-header"
+// 🚀 核心修改：导入通用的 Header 组件
+import { Header } from "@/components/header"
 
 
 export default function JobDetailPage() {
@@ -24,7 +23,7 @@ export default function JobDetailPage() {
   const [error, setError] = useState<string | null>(null)
   const [showAssessment, setShowAssessment] = useState(false)
   const [hasAssessment, setHasAssessment] = useState(false)
-  // 🚀 新增状态：用于传递给 Header 组件
+  // 用于传递给 Header 组件
   const [applicationCount, setApplicationCount] = useState(0)
 
   // TODO: 从登录用户状态获取实际用户ID
@@ -87,10 +86,11 @@ export default function JobDetailPage() {
   if (loading) {
     return (
         <div className="min-h-screen bg-gray-50">
-          {/* 传递 applicationCount 给 Header，并确保显示 Back 按钮 */}
-          <StudentPortalHeader
+          {/* 🚀 核心修改：使用通用 Header */}
+          <Header
+              variant="student"
               applicationCount={applicationCount}
-              showBackButton={true}
+              showBackButton={true} // 确保显示 Back 按钮
           />
           <div className="flex items-center justify-center min-h-[calc(100vh-80px)]">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-600"></div>
@@ -103,7 +103,9 @@ export default function JobDetailPage() {
   if (error || !job) {
     return (
         <div className="min-h-screen bg-gray-50">
-          <StudentPortalHeader
+          {/* 🚀 核心修改：使用通用 Header */}
+          <Header
+              variant="student"
               applicationCount={applicationCount}
               showBackButton={true}
           />
@@ -124,11 +126,13 @@ export default function JobDetailPage() {
   // --- 正常显示 ---
   return (
       <div className="min-h-screen bg-gray-50">
-        {/* 🚀 使用 StudentPortalHeader 组件 */}
-        <StudentPortalHeader
+        {/* 🚀 核心修改：使用通用 Header 组件 */}
+        <Header
+            variant="student"
             applicationCount={applicationCount}
             // 确保 Back 按钮显示，默认返回 /student
             showBackButton={true}
+            backHref="/student" // 明确指定返回学生门户根目录
         />
 
         <main className="container mx-auto px-4 py-8">

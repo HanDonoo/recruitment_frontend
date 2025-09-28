@@ -36,7 +36,7 @@ interface CandidateListProps {
 export function CandidateList({ candidates }: CandidateListProps) {
   const router = useRouter();
 
-  console.log("123123", candidates)
+  console.log("candidates are", candidates)
 
   const isMobile = useIsMobile();
   const [messageDialogOpen, setMessageDialogOpen] = useState(false)

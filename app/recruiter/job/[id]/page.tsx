@@ -6,10 +6,10 @@ import { useParams } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { MapPin, Users, Building, Calendar, AlertCircle } from "lucide-react"
+import { MapPin, Users, Building, Calendar, AlertCircle, Loader2 } from "lucide-react"
 import { api, Job } from "@/lib/api"
-// Import RecruiterPortalHeader component
-import { RecruiterPortalHeader } from "@/components/recruiter-portal-header"
+// 🚀 核心修改：导入通用的 Header 组件
+import { Header } from "@/components/header"
 
 export default function JobDetailPage() {
   const params = useParams()
@@ -67,14 +67,14 @@ export default function JobDetailPage() {
   if (loading) {
     return (
         <div className="min-h-screen bg-background">
-          {/* Use RecruiterPortalHeader component with back button */}
-          <RecruiterPortalHeader
+          {/* 🚀 核心修复：移除 pageTitle 属性 */}
+          <Header
+              variant="recruiter"
               showBackButton={true}
               backHref="/recruiter"
-              pageTitle="Job Details"
           />
           <div className="flex items-center justify-center min-h-[calc(100vh-80px)]">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-sot-red"></div>
+            <Loader2 className="w-8 h-8 animate-spin text-sot-red" />
             <p className="text-muted-foreground ml-4">Loading job details...</p>
           </div>
         </div>
@@ -85,10 +85,11 @@ export default function JobDetailPage() {
   if (error || !job) {
     return (
         <div className="min-h-screen bg-background">
-          <RecruiterPortalHeader
+          {/* 🚀 核心修复：移除 pageTitle 属性 */}
+          <Header
+              variant="recruiter"
               showBackButton={true}
               backHref="/recruiter"
-              pageTitle="Job Details"
           />
           <div className="flex items-center justify-center min-h-[calc(100vh-80px)]">
             <div className="text-center max-w-md p-8 bg-card rounded-lg shadow-lg">
@@ -107,11 +108,11 @@ export default function JobDetailPage() {
   // --- Normal display ---
   return (
       <div className="min-h-screen bg-background">
-        {/* Use RecruiterPortalHeader component */}
-        <RecruiterPortalHeader
+        {/* 🚀 核心修复：移除 pageTitle 属性 */}
+        <Header
+            variant="recruiter"
             showBackButton={true}
             backHref="/recruiter"
-            pageTitle="Job Details"
         />
 
         <main className="container mx-auto px-4 py-8">

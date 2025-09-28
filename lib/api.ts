@@ -1,6 +1,9 @@
-// API interfaces for backend integration
+// api.ts
 
-// 保持原有的前端接口定义不变
+// ----------------------------------------------------
+// 基础数据接口定义 (保持与您原有的一致)
+// ----------------------------------------------------
+
 export interface Job {
   id: number
   title: string
@@ -121,7 +124,45 @@ export interface InterviewCreate {
   notes?: string | null
 }
 
+// ----------------------------------------------------
+// 新增：Organizer Dashboard 的 TypeScript 接口 (对应后端 Pydantic Schemas)
+// ----------------------------------------------------
+
+/** 核心统计数据 (对应 OrganizerStatsOut) */
+export interface OrganizerStats {
+  total_students: number
+  total_companies: number
+  total_applications: number
+  total_interviews: number
+  placement_rate: number // float
+  active_jobs: number
+}
+
+/** 趋势数据 (对应 ApplicationTrend) */
+export interface TrendData {
+  day_label: string
+  applications: number
+  interviews: number
+}
+
+/** 排行榜数据 (对应 CompanyLeaderboardItem) */
+export interface LeaderboardItem {
+  company_name: string
+  applications: number
+  interviews: number
+  placements: number
+}
+
+/** 状态统计数据 (对应 ApplicationStatusCount) */
+export interface StatusCount {
+  status: string
+  count: number
+}
+
+// ----------------------------------------------------
 // 数据转换工具函数
+// ----------------------------------------------------
+
 const transformBackendJobToFrontend = (backendJob: BackendJob): Job => {
   return {
     id: backendJob.id,
@@ -753,6 +794,94 @@ export const api = {
         }
 
         const data: Interview = await response.json()
+        return {
+          success: true,
+          data,
+        }
+      } catch (error) {
+        return {
+          success: false,
+          error: error instanceof Error ? error.message : 'Unknown error',
+        }
+      }
+    },
+  },
+
+  // ----------------------------------------------------
+  // 新增：Organizer Dashboard Endpoints
+  // ----------------------------------------------------
+  organizer: {
+    /** GET /organizer/stats: 获取核心统计指标 */
+    getStats: async (): Promise<ApiResponse<OrganizerStats>> => {
+      try {
+        // 后端路由前缀为 /organizer
+        const response = await fetch(`${API_BASE_URL}/organizer/stats`)
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`)
+        }
+        const data: OrganizerStats = await response.json()
+        return {
+          success: true,
+          data,
+        }
+      } catch (error) {
+        return {
+          success: false,
+          error: error instanceof Error ? error.message : 'Unknown error',
+        }
+      }
+    },
+
+    /** GET /organizer/trends: 获取申请和面试趋势数据 */
+    getTrends: async (limit: number = 7): Promise<ApiResponse<TrendData[]>> => {
+      try {
+        const url = `${API_BASE_URL}/organizer/trends?limit=${limit}`
+        const response = await fetch(url)
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`)
+        }
+        const data: TrendData[] = await response.json()
+        return {
+          success: true,
+          data,
+        }
+      } catch (error) {
+        return {
+          success: false,
+          error: error instanceof Error ? error.message : 'Unknown error',
+        }
+      }
+    },
+
+    /** GET /organizer/leaderboard: 获取最活跃公司的排行榜 */
+    getLeaderboard: async (limit: number = 5): Promise<ApiResponse<LeaderboardItem[]>> => {
+      try {
+        const url = `${API_BASE_URL}/organizer/leaderboard?limit=${limit}`
+        const response = await fetch(url)
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`)
+        }
+        const data: LeaderboardItem[] = await response.json()
+        return {
+          success: true,
+          data,
+        }
+      } catch (error) {
+        return {
+          success: false,
+          error: error instanceof Error ? error.message : 'Unknown error',
+        }
+      }
+    },
+
+    /** GET /organizer/status_counts: 获取所有申请的状态分布 */
+    getStatusCounts: async (): Promise<ApiResponse<StatusCount[]>> => {
+      try {
+        const response = await fetch(`${API_BASE_URL}/organizer/status_counts`)
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`)
+        }
+        const data: StatusCount[] = await response.json()
         return {
           success: true,
           data,

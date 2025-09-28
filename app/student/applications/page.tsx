@@ -9,8 +9,8 @@ import { Progress } from "@/components/ui/progress"
 // 移除 ArrowLeft，因为它现在在 Header 组件内部
 import { Building, Calendar, TrendingUp, Clock, CheckCircle, XCircle } from "lucide-react"
 import { api, ApplicationOut, Job } from "@/lib/api"
-// 🚀 导入新的 Header 组件
-import { StudentPortalHeader } from "@/components/student-portal-header"
+// 🚀 核心修改：导入通用的 Header 组件
+import { Header } from "@/components/header"
 
 interface Application {
   jobId: number
@@ -156,9 +156,9 @@ export default function ApplicationsPage() {
 
   return (
       <div className="min-h-screen bg-gray-50">
-        {/* 🚀 使用 StudentPortalHeader 组件 */}
-        {/* 传入 stats.total 作为 applicationCount，并确保显示 Back 按钮 */}
-        <StudentPortalHeader
+        {/* 🚀 核心修改：使用通用 Header 组件，设置 variant="student" */}
+        <Header
+            variant="student"
             applicationCount={stats.total}
             showBackButton={true}
             // 确保 Back 按钮返回到 /student 主页
