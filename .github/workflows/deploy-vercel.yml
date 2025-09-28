@@ -1,9 +1,11 @@
+# .github/workflows/deploy-vercel.yml
+
 name: Deploy to Vercel
 
 on:
   push:
     branches:
-      - master
+      - master  # or main
 
 jobs:
   deploy:
@@ -24,14 +26,14 @@ jobs:
       - name: Install dependencies
         run: pnpm install --no-frozen-lockfile
 
-      - name: Pull Vercel Environment Info
+      - name: Pull Vercel environment
         run: |
-          npx vercel pull --yes --token=${{ secrets.VERCEL_TOKEN }}
+          npx vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
 
-      - name: Build Project
+      - name: Build project for production
         run: |
-          npx vercel build --token=${{ secrets.VERCEL_TOKEN }}
+          npx vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
 
-      - name: Deploy to Vercel
+      - name: Deploy to Vercel (Production)
         run: |
           npx vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }}
