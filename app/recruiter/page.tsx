@@ -159,9 +159,9 @@ export default function RecruiterPage() {
       : []
 
   // 统计数据占位符
-  const totalApplications = "API Req"
-  const averageScore = "API Req"
-  const jobsWithCandidates = "API Req"
+  const totalApplications = "1"
+  const averageScore = "80"
+  const jobsWithCandidates = "1"
 
   if (isLoading) {
     return (

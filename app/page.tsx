@@ -16,7 +16,7 @@ export default function HomePage() {
                 </div>
                 <h1 className="text-xl font-bold text-gray-900">Summer of Tech</h1>
               </div>
-              <div className="text-sm text-gray-600">AI Resume Matcher</div>
+              {/*<div className="text-sm text-gray-600">AI Resume Matcher</div>*/}
             </div>
           </div>
         </header>
@@ -26,8 +26,7 @@ export default function HomePage() {
           <div className="text-center mb-16">
             <h2 className="text-4xl font-bold text-gray-900 mb-4 text-balance">AI-Powered Resume Assessment Platform</h2>
             <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto text-pretty">
-              Advanced AI technology to match students with perfect summer tech internships and help recruiters find top
-              talent efficiently
+              Helping students land top tech internships and recruiters discover top talent with AI.
             </p>
           </div>
 
