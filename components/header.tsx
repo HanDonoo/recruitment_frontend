@@ -25,7 +25,7 @@ function getVariantConfig(variant: HeaderProps['variant'], isMobile: boolean) {
     const config = {
         main: {
             title: "Summer of Tech",
-            subtitle: "AI Resume Matcher",
+            subtitle: "",
             mobileText: "SoT",
             badgeText: isMobile ? "Main" : "Main Portal",
             badgeClass: "bg-gray-200 text-gray-700",
