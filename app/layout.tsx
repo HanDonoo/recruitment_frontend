@@ -9,9 +9,8 @@ const inter = Inter({
 })
 
 export const metadata: Metadata = {
-  title: "AI简历匹配工具",
-  description: "AI驱动的简历评估与职位匹配平台",
-    generator: 'v0.app'
+  title: "AI Recruitment Tool",
+  description: "AI Recruitment Tool",
 }
 
 export default function RootLayout({
