@@ -8,7 +8,6 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { MapPin, Users, Building, Calendar, AlertCircle, Loader2 } from "lucide-react"
 import { api, Job } from "@/lib/api"
-// 🚀 核心修改：导入通用的 Header 组件
 import { Header } from "@/components/header"
 
 export default function JobDetailPage() {
@@ -63,7 +62,6 @@ export default function JobDetailPage() {
     fetchData()
   }, [jobId])
 
-  // --- Loading state ---
   if (loading) {
     return (
         <div className="min-h-screen bg-background">
@@ -81,11 +79,9 @@ export default function JobDetailPage() {
     )
   }
 
-  // --- Error state ---
   if (error || !job) {
     return (
         <div className="min-h-screen bg-background">
-          {/* 🚀 核心修复：移除 pageTitle 属性 */}
           <Header
               variant="recruiter"
               showBackButton={true}
@@ -105,10 +101,8 @@ export default function JobDetailPage() {
     )
   }
 
-  // --- Normal display ---
   return (
       <div className="min-h-screen bg-background">
-        {/* 🚀 核心修复：移除 pageTitle 属性 */}
         <Header
             variant="recruiter"
             showBackButton={true}

@@ -5,11 +5,9 @@ import Link from "next/link"
 import { api } from "@/lib/api"
 import { useParams } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Star, TrendingUp, BookOpen, Target, Award, Loader2 } from "lucide-react"
 import { AssessmentRadarChart } from "@/components/radar-chart"
-// 🚀 核心修改：导入通用的 Header 组件
 import { Header } from "@/components/header"
 
 export default function AssessmentResultPage() {
@@ -18,7 +16,6 @@ export default function AssessmentResultPage() {
 
   const [assessment, setAssessment] = useState<any>(null)
   const [isLoading, setIsLoading] = useState(true)
-  // 用于 Header
   const [applicationCount, setApplicationCount] = useState(0)
 
   // TODO: 从登录用户状态获取实际用户ID
@@ -64,7 +61,6 @@ export default function AssessmentResultPage() {
   if (isLoading) {
     return (
         <div className="min-h-screen bg-gray-50">
-          {/* 🚀 核心修改：使用通用 Header */}
           <Header
               variant="student"
               applicationCount={applicationCount}
@@ -73,7 +69,6 @@ export default function AssessmentResultPage() {
           />
           <main className="container mx-auto px-4 py-8">
             <div className="max-w-4xl mx-auto">
-              {/* Overall Score Skeleton */}
               <Card className="bg-white border-gray-200 mb-6">
                 <CardContent className="pt-6">
                   <div className="flex items-center space-x-4 mb-4">
@@ -86,7 +81,6 @@ export default function AssessmentResultPage() {
               </Card>
 
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-                {/* Chart Skeleton */}
                 <Card className="bg-white border-gray-200">
                   <CardHeader>
                     <div className="w-32 h-6 bg-gray-200 rounded animate-pulse"></div>
@@ -98,7 +92,6 @@ export default function AssessmentResultPage() {
                   </CardContent>
                 </Card>
 
-                {/* Scores Skeleton */}
                 <Card className="bg-white border-gray-200">
                   <CardHeader>
                     <div className="w-32 h-6 bg-gray-200 rounded animate-pulse"></div>
@@ -117,7 +110,6 @@ export default function AssessmentResultPage() {
                 </Card>
               </div>
 
-              {/* Content Skeletons */}
               {[1, 2].map((i) => (
                   <Card key={i} className="bg-white border-gray-200 mb-6">
                     <CardHeader>
@@ -142,11 +134,9 @@ export default function AssessmentResultPage() {
     )
   }
 
-  // ========================== 🚀 无数据状态 ==========================
   if (!assessment) {
     return (
         <div className="min-h-screen bg-gray-50">
-          {/* 🚀 核心修改：使用通用 Header */}
           <Header
               variant="student"
               applicationCount={applicationCount}
@@ -175,7 +165,6 @@ export default function AssessmentResultPage() {
     )
   }
 
-  // --- 辅助函数保持不变 ---
   const getScoreColor = (score: number) => {
     if (score >= 80) return "text-green-600 bg-green-50"
     if (score >= 60) return "text-yellow-600 bg-yellow-50"
@@ -191,7 +180,6 @@ export default function AssessmentResultPage() {
   // @ts-ignore
   return (
       <div className="min-h-screen bg-gray-50">
-        {/* 🚀 核心修改：使用通用 Header */}
         <Header
             variant="student"
             applicationCount={applicationCount}

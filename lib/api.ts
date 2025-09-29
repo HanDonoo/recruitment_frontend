@@ -120,7 +120,6 @@ export interface InterviewCreate {
   notes?: string | null
 }
 
-/** 核心统计数据 (对应 OrganizerStatsOut) */
 export interface OrganizerStats {
   total_students: number
   total_companies: number
@@ -130,14 +129,12 @@ export interface OrganizerStats {
   active_jobs: number
 }
 
-/** 趋势数据 (对应 ApplicationTrend) */
 export interface TrendData {
   day_label: string
   applications: number
   interviews: number
 }
 
-/** 排行榜数据 (对应 CompanyLeaderboardItem) */
 export interface LeaderboardItem {
   company_name: string
   applications: number
@@ -145,7 +142,6 @@ export interface LeaderboardItem {
   placements: number
 }
 
-/** 状态统计数据 (对应 ApplicationStatusCount) */
 export interface StatusCount {
   status: string
   count: number
@@ -174,8 +170,8 @@ const transformFrontendJobToBackend = (frontendJob: Omit<Job, "id" | "applicants
     company_name: frontendJob.company,
     location: frontendJob.location,
     salary: frontendJob.salary,
-    role: frontendJob.experience, // 将experience映射为role
-    employment_type: "full-time", // 默认值，可以根据需要调整
+    role: frontendJob.experience,
+    employment_type: "full-time",
     skill_tags: frontendJob.tags.join(', '),
     description: frontendJob.description
   }
@@ -466,7 +462,7 @@ export const api = {
     assessResume: async (jobId: number, resumeFile: File): Promise<ApiResponse<AssessmentResult>> => {
       try {
         const formData = new FormData()
-        formData.append("file", resumeFile)  // 这里 key 改为 "file" 跟后端参数名对应
+        formData.append("file", resumeFile)
 
         const response = await fetch(`${API_BASE_URL}/jobs/${jobId}/assess`, {  // URL 里加 jobId
           method: "POST",

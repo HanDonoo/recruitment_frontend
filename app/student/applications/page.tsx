@@ -6,18 +6,16 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
-// 移除 ArrowLeft，因为它现在在 Header 组件内部
 import { Building, Calendar, TrendingUp, Clock, CheckCircle, XCircle } from "lucide-react"
 import { api, ApplicationOut, Job } from "@/lib/api"
-// 🚀 核心修改：导入通用的 Header 组件
 import { Header } from "@/components/header"
 
 interface Application {
   jobId: number
   jobTitle: string
   company: string
-  appliedAt: string // ApplicationOut.created_at
-  status: string // ApplicationOut.status
+  appliedAt: string
+  status: string
 }
 
 const CURRENT_APPLICANT_ID = 1
@@ -156,24 +154,20 @@ export default function ApplicationsPage() {
 
   return (
       <div className="min-h-screen bg-gray-50">
-        {/* 🚀 核心修改：使用通用 Header 组件，设置 variant="student" */}
         <Header
             variant="student"
             applicationCount={stats.total}
             showBackButton={true}
-            // 确保 Back 按钮返回到 /student 主页
             backHref="/student"
         />
 
         <main className="container mx-auto px-4 py-8">
           <div className="max-w-4xl mx-auto">
-            {/* Page Header */}
             <div className="mb-8">
               <h2 className="text-3xl font-bold text-gray-900 mb-2">My Applications</h2>
               <p className="text-gray-600 text-lg">Track the status and progress of your internship applications</p>
             </div>
 
-            {/* 加载和错误状态 */}
             {isLoading && (
                 <Card className="p-8 text-center">
                   <Clock className="w-5 h-5 mr-2 animate-spin inline-block text-gray-500" />
@@ -190,7 +184,6 @@ export default function ApplicationsPage() {
                 </Card>
             )}
 
-            {/* Application Stats Cards */}
             {!isLoading && applications.length > 0 && (
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
                   <Card className="bg-white border-gray-200">
@@ -253,7 +246,6 @@ export default function ApplicationsPage() {
                 </div>
             )}
 
-            {/* Applications List */}
             {!isLoading && applications.length === 0 && !error ? (
                 <Card className="bg-white border-gray-200">
                   <CardContent className="p-8 text-center">
@@ -309,7 +301,6 @@ export default function ApplicationsPage() {
                         <CardContent>
                           <div className="flex items-center justify-between">
                             <div className="text-sm text-gray-600">
-                              {/*Application ID: #{application.jobId.toString().padStart(4, "0")}*/}
                             </div>
                             <div className="flex space-x-2">
                               <Link href={`/student/job/${application.jobId}`}>

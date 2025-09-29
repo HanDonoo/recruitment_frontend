@@ -1,14 +1,11 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import Link from "next/link"
 import { useParams, useRouter } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Star, TrendingUp, BookOpen, Target, Award, User, Loader2 } from "lucide-react"
 import { AssessmentRadarChart } from "@/components/radar-chart"
-// 🚀 核心修改：导入通用的 Header 组件
 import { Header } from "@/components/header"
 import { api } from "@/lib/api"
 
@@ -83,18 +80,15 @@ export default function RecruiterAssessmentPage({ searchParams }: RecruiterAsses
 
     // Handle back navigation
     const handleBackNavigation = () => {
-        // 尝试使用 router.back() 返回上一页
         router.back()
     }
 
     if (isLoading) {
         return (
             <div className="min-h-screen bg-background">
-                {/* 🚀 核心修改：使用通用 Header，移除 pageTitle */}
                 <Header
                     variant="recruiter"
                     showBackButton={true}
-                    // 由于 RecruiterPortalHeader 之前没有 backHref，这里不设置
                 />
 
                 <main className="container mx-auto px-4 py-8">
@@ -147,7 +141,6 @@ export default function RecruiterAssessmentPage({ searchParams }: RecruiterAsses
     if (error || !assessment || !jobId) {
         return (
             <div className="min-h-screen bg-background">
-                {/* 🚀 核心修改：使用通用 Header，移除 pageTitle */}
                 <Header
                     variant="recruiter"
                     showBackButton={true}
@@ -191,7 +184,6 @@ export default function RecruiterAssessmentPage({ searchParams }: RecruiterAsses
 
     return (
         <div className="min-h-screen bg-background">
-            {/* 🚀 核心修改：使用通用 Header，移除 pageTitle */}
             <Header
                 variant="recruiter"
                 showBackButton={true}

@@ -3,24 +3,17 @@
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-// 导入所有需要的图标
 import { ArrowLeft, FileText, TrendingUp, Home, LayoutDashboard } from "lucide-react"
 import { usePathname } from "next/navigation"
-// 假设 useIsMobile 位于 @/hooks/use-mobile
 import { useIsMobile } from "@/hooks/use-mobile"
 
-// --- 类型定义 ---
 interface HeaderProps {
     variant?: "main" | "student" | "recruiter" | "organization"
-    /** 控制 Back 按钮是否显示在非根页面 (默认 false) */
     showBackButton?: boolean
-    /** 仅在 student 变体中使用，显示应用数量 */
     applicationCount?: number
-    /** Back 按钮链接 (默认为上一级门户根路径或 /) */
     backHref?: string
 }
 
-// --- 辅助函数：根据 variant 获取配置 ---
 function getVariantConfig(variant: HeaderProps['variant'], isMobile: boolean) {
     const config = {
         main: {
@@ -63,7 +56,6 @@ function getVariantConfig(variant: HeaderProps['variant'], isMobile: boolean) {
     return config[variant || 'main'];
 }
 
-// --- 组件主体 ---
 export function Header({
                            variant = "main",
                            showBackButton = false,
@@ -74,17 +66,13 @@ export function Header({
     const isMobile = useIsMobile()
     const config = getVariantConfig(variant, isMobile)
 
-    // 确定默认的 backHref
     const effectiveBackHref = backHref || (variant === 'main' ? '/' : `/${variant}`);
 
-    // 智能判断是否显示 Back 按钮
     const isRoot = pathname === "/"
     const isPortalRoot = pathname === `/${variant}` || pathname === `/${variant}/`
-    // 在主页和各门户的根目录不显示 Back 按钮
     const shouldShowBack = showBackButton && !isRoot && !isPortalRoot
 
 
-    // --- 移动端布局 ---
     if (isMobile) {
         return (
             <header className="border-b border-gray-200 bg-white sticky top-0 z-50 shadow-sm">
@@ -139,7 +127,6 @@ export function Header({
         )
     }
 
-    // --- 桌面/非移动端布局 ---
     return (
         <header className="border-b border-gray-200 bg-white/95 backdrop-blur-sm sticky top-0 z-50 shadow-sm">
             <div className="container mx-auto px-4 py-4">
@@ -160,7 +147,6 @@ export function Header({
                         {/* Logo and Main Title */}
                         <Link href="/" className="flex items-center space-x-3 hover:opacity-80 transition-opacity">
                             <div className="w-10 h-10 bg-red-600 rounded-full flex items-center justify-center shadow-md">
-                                {/* Portal 模式下显示图标，Main 模式下显示 SoT 文本 */}
                                 {variant !== 'main' ? (
                                     <config.icon className="w-5 h-5 text-white" />
                                 ) : (
@@ -169,7 +155,6 @@ export function Header({
                             </div>
                             <div>
                                 <h1 className="text-xl font-bold text-gray-900">Summer of Tech</h1>
-                                {/* 门户模式下显示门户名称，Main 模式下显示副标题 */}
                                 <p className="text-xs text-gray-500 -mt-1">
                                     {variant !== 'main' ? config.title : config.subtitle}
                                 </p>
@@ -179,7 +164,6 @@ export function Header({
 
                     {/* 2. Right Side: Actions and Badge */}
                     <div className="flex items-center space-x-3">
-                        {/* Student 应用计数按钮 */}
                         {variant === "student" && (
                             <Link href="/student/applications">
                                 <Button
@@ -199,7 +183,6 @@ export function Header({
                                 {config.badgeText}
                             </Badge>
                         )}
-                        {/* Main 模式下显示 AI Resume Matcher 徽章 */}
                         {variant === "main" && (
                             <Badge className={config.badgeClass + " shadow-sm"}>
                                 {config.badgeText}

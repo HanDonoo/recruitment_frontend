@@ -3,26 +3,23 @@
 import { useState, useEffect } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Header } from "@/components/header" // <--- 确保此路径指向您提供的 Header 组件
+import { Header } from "@/components/header"
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
 import { LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid } from "recharts"
 import { Users, Building, FileText, Calendar, TrendingUp, Target, Loader2, AlertTriangle } from "lucide-react"
 
-// 导入前端 API 接口和数据类型
+
 import {
     api,
     OrganizerStats,
     TrendData,
     LeaderboardItem,
     StatusCount
-} from "@/lib/api" // 确保您的 api.ts 路径正确
+} from "@/lib/api"
 
-// 导入 useIsMobile 钩子 (使用您提供的路径)
+// 导入 useIsMobile 钩子
 import { useIsMobile } from "@/hooks/use-mobile"
 
-// ----------------------------------------------------------------------
-// 默认/初始状态数据（保持不变）
-// ----------------------------------------------------------------------
 const initialStats: OrganizerStats = {
     total_students: 0,
     total_companies: 0,
@@ -32,7 +29,7 @@ const initialStats: OrganizerStats = {
     active_jobs: 0,
 }
 
-// 饼图颜色映射（保持不变）
+// 饼图颜色映射
 const statusColors: { [key: string]: string } = {
     "pending": "#3b82f6",
     "under_review": "#3b82f6", // 蓝色
@@ -42,28 +39,21 @@ const statusColors: { [key: string]: string } = {
     "rejected": "#ef4444", // 红色
 };
 
-// ----------------------------------------------------------------------
-// 主组件
-// ----------------------------------------------------------------------
-
 export default function OrganizationPage() {
     const isMobile = useIsMobile()
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState<string | null>(null)
 
-    // 存储从 API 获取的数据
     const [stats, setStats] = useState<OrganizerStats>(initialStats)
     const [trends, setTrends] = useState<TrendData[]>([])
     const [statusCounts, setStatusCounts] = useState<StatusCount[]>([])
     const [topCompanies, setTopCompanies] = useState<LeaderboardItem[]>([])
 
-    // 数据获取逻辑
     useEffect(() => {
         async function fetchData() {
             setLoading(true)
             setError(null)
             try {
-                // 并行执行所有 API 调用
                 const [statsRes, trendsRes, statusRes, companiesRes] = await Promise.all([
                     api.organizer.getStats(),
                     api.organizer.getTrends(30),
@@ -98,11 +88,9 @@ export default function OrganizationPage() {
         fetchData()
     }, [])
 
-    // 渲染加载/错误状态
     if (loading) {
         return (
             <div className="min-h-screen bg-gray-50">
-                {/* 使用您的 Header 组件，并设置 variant */}
                 <Header variant="organization" />
                 <div className="container mx-auto px-4 py-8">
                     <div className="flex items-center justify-center h-64">
@@ -119,7 +107,6 @@ export default function OrganizationPage() {
     if (error) {
         return (
             <div className="min-h-screen bg-gray-50">
-                {/* 使用您的 Header 组件，并设置 variant */}
                 <Header variant="organization" />
                 <div className="container mx-auto px-4 py-8">
                     <Card className="border-red-500 bg-red-50">
@@ -137,11 +124,6 @@ export default function OrganizationPage() {
         )
     }
 
-    // ----------------------------------------------------------------------
-    // 渲染主仪表板
-    // ----------------------------------------------------------------------
-
-    // 为 ChartContainer 动态创建配置
     const chartConfig = statusCounts.reduce((acc, item) => {
         const statusKey = item.status;
         const color = statusColors[statusKey.toLowerCase()] || "#cccccc";
@@ -149,7 +131,6 @@ export default function OrganizationPage() {
         return acc;
     }, {} as { [key: string]: { label: string, color: string } });
 
-    // 优化：图表高度在移动端可以适当降低
     const chartHeight = isMobile ? '250px' : '300px';
 
     // @ts-ignore

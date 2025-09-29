@@ -9,10 +9,8 @@ import { Search, Clock, Users, AlertCircle, FileText, Star, Briefcase } from "lu
 import { JobCard } from "@/components/job-card"
 import { AssessmentModal } from "@/components/assessment-modal"
 import { api, Job } from "@/lib/api"
-// 🚀 核心修改：引入通用的 Header 组件
 import { Header } from "@/components/header"
 
-// Job view types
 type JobViewType = 'recommended' | 'all'
 
 export default function StudentPage() {
@@ -131,7 +129,6 @@ export default function StudentPage() {
     }
   }
 
-  // Handle job view type change
   const handleViewTypeChange = async (viewType: JobViewType) => {
     if (viewType === 'recommended') {
       // Switch back to recommended jobs
@@ -230,7 +227,6 @@ export default function StudentPage() {
   if (loading) {
     return (
         <div className="min-h-screen bg-gray-50">
-          {/* 🚀 核心修改：使用通用 Header */}
           <Header variant="student" applicationCount={applicationCount} showBackButton={false} />
 
           <div className="flex items-center justify-center min-h-[calc(100vh-80px)]">
@@ -247,7 +243,6 @@ export default function StudentPage() {
   if (error) {
     return (
         <div className="min-h-screen bg-gray-50">
-          {/* 🚀 核心修改：使用通用 Header */}
           <Header variant="student" applicationCount={applicationCount} showBackButton={false} />
 
           <div className="flex items-center justify-center min-h-[calc(100vh-80px)]">
@@ -267,7 +262,6 @@ export default function StudentPage() {
   // Main content
   return (
       <div className="min-h-screen bg-gray-50">
-        {/* 🚀 核心修改：使用通用 Header */}
         <Header variant="student" applicationCount={applicationCount} showBackButton={false} />
 
         <main className="container mx-auto px-4 py-8">

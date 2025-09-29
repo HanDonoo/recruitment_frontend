@@ -9,13 +9,11 @@ import { Button } from "@/components/ui/button"
 import { MapPin, Users, Building, Calendar, AlertCircle } from "lucide-react"
 import { AssessmentModal } from "@/components/assessment-modal"
 import { api, Job } from "@/lib/api"
-// 🚀 核心修改：导入通用的 Header 组件
 import { Header } from "@/components/header"
 
 
 export default function JobDetailPage() {
   const params = useParams()
-  // 确保 jobId 是 number 类型
   const jobId = Number(params.id)
 
   const [job, setJob] = useState<Job | null>(null)
@@ -23,7 +21,6 @@ export default function JobDetailPage() {
   const [error, setError] = useState<string | null>(null)
   const [showAssessment, setShowAssessment] = useState(false)
   const [hasAssessment, setHasAssessment] = useState(false)
-  // 用于传递给 Header 组件
   const [applicationCount, setApplicationCount] = useState(0)
 
   // TODO: 从登录用户状态获取实际用户ID
@@ -86,11 +83,10 @@ export default function JobDetailPage() {
   if (loading) {
     return (
         <div className="min-h-screen bg-gray-50">
-          {/* 🚀 核心修改：使用通用 Header */}
           <Header
               variant="student"
               applicationCount={applicationCount}
-              showBackButton={true} // 确保显示 Back 按钮
+              showBackButton={true}
           />
           <div className="flex items-center justify-center min-h-[calc(100vh-80px)]">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-600"></div>
@@ -103,7 +99,6 @@ export default function JobDetailPage() {
   if (error || !job) {
     return (
         <div className="min-h-screen bg-gray-50">
-          {/* 🚀 核心修改：使用通用 Header */}
           <Header
               variant="student"
               applicationCount={applicationCount}
@@ -123,16 +118,13 @@ export default function JobDetailPage() {
     )
   }
 
-  // --- 正常显示 ---
   return (
       <div className="min-h-screen bg-gray-50">
-        {/* 🚀 核心修改：使用通用 Header 组件 */}
         <Header
             variant="student"
             applicationCount={applicationCount}
-            // 确保 Back 按钮显示，默认返回 /student
             showBackButton={true}
-            backHref="/student" // 明确指定返回学生门户根目录
+            backHref="/student"
         />
 
         <main className="container mx-auto px-4 py-8">
@@ -154,12 +146,10 @@ export default function JobDetailPage() {
                       </div>
                       <div className="flex items-center space-x-1">
                         <Calendar className="w-4 h-4" />
-                        {/* 假设 job.experience 是一个有效的字段 */}
                         <span>{job.experience}</span>
                       </div>
                     </div>
                     <div className="flex flex-wrap gap-2">
-                      {/* 假设 job.tags 是一个字符串数组 */}
                       {job.tags && Array.isArray(job.tags) && job.tags.map((tag) => (
                           <Badge key={tag} variant="secondary" className="text-xs">
                             {tag}

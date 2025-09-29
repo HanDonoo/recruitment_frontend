@@ -3,12 +3,10 @@
 import { useState, useEffect, useCallback } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { Search, Users, Eye, Star, Award, ArrowLeft, Loader2 } from "lucide-react"
 import { JobCard } from "@/components/job-card"
 import { CandidateList } from "@/components/candidate-list"
-// 🚀 核心修改：引入通用的 Header 组件
 import { Header } from "@/components/header"
 import { api, Job, Candidate, ApplicationOut } from "@/lib/api"
 
@@ -184,15 +182,13 @@ export default function RecruiterPage() {
 
   return (
       <div className="min-h-screen bg-background">
-        {/* 🚀 核心修改：使用通用的 Header 组件，设置 variant="recruiter" */}
         <Header
             variant="recruiter"
-            showBackButton={!!selectedJob} // 在选中 Job 时显示 Back 按钮
-            backHref="/recruiter" // 返回 Recruiter Portal 根目录
+            showBackButton={!!selectedJob}
+            backHref="/recruiter"
         />
 
         <main className="container mx-auto px-4 py-8">
-          {/* Welcome Section */}
           <div className="mb-8">
             <h2 className="text-3xl font-bold text-foreground mb-2 text-balance">Smart Recruitment Platform</h2>
             <p className="text-muted-foreground text-lg">
@@ -200,7 +196,6 @@ export default function RecruiterPage() {
             </p>
           </div>
 
-          {/* Stats Cards */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
             <Card className="bg-card border-border">
               <CardContent className="p-4">
