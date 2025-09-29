@@ -1,9 +1,5 @@
 // api.ts
 
-// ----------------------------------------------------
-// 基础数据接口定义 (保持与您原有的一致)
-// ----------------------------------------------------
-
 export interface Job {
   id: number
   title: string
@@ -124,10 +120,6 @@ export interface InterviewCreate {
   notes?: string | null
 }
 
-// ----------------------------------------------------
-// 新增：Organizer Dashboard 的 TypeScript 接口 (对应后端 Pydantic Schemas)
-// ----------------------------------------------------
-
 /** 核心统计数据 (对应 OrganizerStatsOut) */
 export interface OrganizerStats {
   total_students: number
@@ -158,10 +150,6 @@ export interface StatusCount {
   status: string
   count: number
 }
-
-// ----------------------------------------------------
-// 数据转换工具函数
-// ----------------------------------------------------
 
 const transformBackendJobToFrontend = (backendJob: BackendJob): Job => {
   return {
@@ -807,9 +795,6 @@ export const api = {
     },
   },
 
-  // ----------------------------------------------------
-  // 新增：Organizer Dashboard Endpoints
-  // ----------------------------------------------------
   organizer: {
     /** GET /organizer/stats: 获取核心统计指标 */
     getStats: async (): Promise<ApiResponse<OrganizerStats>> => {

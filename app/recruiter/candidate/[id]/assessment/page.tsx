@@ -296,24 +296,6 @@ export default function RecruiterAssessmentPage({ searchParams }: RecruiterAsses
                         </CardContent>
                     </Card>
 
-                    {/* Action Buttons */}
-                    <div className="flex justify-between items-center mt-8">
-                        <Button
-                            variant="outline"
-                            onClick={handleBackNavigation}
-                            className="border-sot-red text-sot-red hover:bg-sot-red hover:text-white"
-                        >
-                            Back to Previous Page
-                        </Button>
-                        <div className="space-x-4">
-                            <Button variant="outline">
-                                Export Report
-                            </Button>
-                            <Button className="bg-sot-red hover:bg-sot-red/90 text-white">
-                                Contact Candidate
-                            </Button>
-                        </div>
-                    </div>
                 </div>
             </main>
         </div>
