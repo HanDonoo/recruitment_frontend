@@ -27,7 +27,7 @@ This is the frontend application for the recruitment platform. It is built with 
 ### Installation
 
 ```bash
-git clone https://github.com/yourusername/recruitment_frontend.git
+git clone https://github.com/HanDonoo/recruitment_frontend.git
 cd recruitment_frontend
 npm install
 # or
