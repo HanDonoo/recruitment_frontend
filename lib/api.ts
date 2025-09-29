@@ -194,7 +194,7 @@ const transformFrontendJobToBackend = (frontendJob: Omit<Job, "id" | "applicants
 }
 
 // API endpoints
-const API_BASE_URL = "http://3.26.233.143:80"
+const API_BASE_URL = "https://api.englis.org"
 
 export const api = {
   // Job endpoints
